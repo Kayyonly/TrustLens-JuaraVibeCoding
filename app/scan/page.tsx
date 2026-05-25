@@ -10,6 +10,7 @@ import Navbar from "@/components/Navbar"
 import BackgroundGlow from "@/components/BackgroundGlow"
 import ScanLoading from "@/components/ScanLoading"
 import ScanResult from "@/components/ScanResult"
+import ThreatHeatmap from "@/components/ThreatHeatmap"
 import HistoryDrawer from "@/components/HistoryDrawer"
 import { cleanOCRText, assessOCRQuality } from "@/lib/cleanOCRText"
 import { useLanguage } from "@/context/LanguageContext"
@@ -33,6 +34,7 @@ type AnalysisResult = {
     phishing_indicators: string[]
   }
   recommended_actions: string[]
+  highlighted_segments?: { text: string; risk: "low" | "medium" | "high" | "critical"; reason: string }[]
 }
 
 const OCR_CONFIDENCE_THRESHOLD = 60
@@ -315,6 +317,14 @@ export default function ScanPage() {
             {loading && (
               <motion.div key="scan-loading" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.4 }} className="mt-12">
                 <ScanLoading />
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <AnimatePresence>
+            {extractedText && !loading && (
+              <motion.div key="threat-heatmap" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="mt-12">
+                <ThreatHeatmap text={extractedText} segments={result?.highlighted_segments || []} title={t.conversationPreview} />
               </motion.div>
             )}
           </AnimatePresence>
