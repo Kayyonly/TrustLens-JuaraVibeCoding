@@ -12,6 +12,8 @@ export type HistoryItem = {
   summary: string;
   thumbnail: string | null;
   result: any;
+  mode?: "screenshot" | "text";
+  textPreview?: string;
 };
 
 export function useScanHistory() {

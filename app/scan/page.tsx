@@ -44,12 +44,15 @@ export default function ScanPage() {
   const { history, isLoaded, addScan, deleteScan, clearHistory } = useScanHistory()
 
   const [loading, setLoading] = useState(false)
+  const [analysisMode, setAnalysisMode] = useState<"screenshot" | "text">("screenshot")
   const [isDragging, setIsDragging] = useState(false)
   const [isHistoryOpen, setIsHistoryOpen] = useState(false)
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [extractedText, setExtractedText] = useState("")
+  const [textInput, setTextInput] = useState("")
+  const [textValidation, setTextValidation] = useState("")
   const [ocrQuality, setOcrQuality] = useState<OcrQuality>(null)
   const [result, setResult] = useState<AnalysisResult | null>(null)
 
@@ -60,6 +63,50 @@ export default function ScanPage() {
     setExtractedText("")
     setOcrQuality(null)
     setResult(null)
+    setTextValidation("")
+  }
+
+  const runTextAnalysis = async () => {
+    const trimmed = textInput.trim()
+    if (!trimmed) {
+      setTextValidation((t as any).textValidation || "Conversation text cannot be empty.")
+      return
+    }
+
+    setLoading(true)
+    setTextValidation("")
+    setSelectedFile(null)
+    setImagePreview(null)
+    setOcrQuality("good")
+    setExtractedText(trimmed)
+
+    try {
+      const response = await fetch("/api/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: trimmed, language }),
+      })
+      const data = await response.json()
+      setResult(data.result)
+
+      addScan({
+        id: Date.now().toString(),
+        timestamp: Date.now(),
+        title: `Text: ${data.result.scam_category?.name || "Analysis"}`,
+        threatScore: parseInt(data.result.scam_probability.replace(/\D/g, "")) || 0,
+        threatLevel: data.result.threat_level,
+        category: data.result.scam_category?.name || "Unknown",
+        summary: data.result.summary,
+        thumbnail: null,
+        result: data.result,
+        mode: "text",
+        textPreview: trimmed.slice(0, 140)
+      } as any)
+    } catch (error) {
+      console.error(error)
+    } finally {
+      setLoading(false)
+    }
   }
 
   const handleOpenFromHistory = (item: HistoryItem) => {
@@ -192,7 +239,19 @@ export default function ScanPage() {
             </p>
           </motion.div>
 
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }} className="mb-6">
+            <div className="inline-flex rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-xl p-1 gap-1">
+              <button onClick={() => { setAnalysisMode("screenshot"); setTextValidation("") }} className={`h-10 px-4 rounded-xl text-sm transition-all ${analysisMode === "screenshot" ? "bg-white text-black" : "text-white/70 hover:text-white hover:bg-white/10"}`}>
+                {(t as any).analyzerModeScreenshot || "Screenshot Mode"}
+              </button>
+              <button onClick={() => { setAnalysisMode("text"); setTextValidation("") }} className={`h-10 px-4 rounded-xl text-sm transition-all ${analysisMode === "text" ? "bg-white text-black" : "text-white/70 hover:text-white hover:bg-white/10"}`}>
+                {(t as any).analyzerModeText || "Text Mode"}
+              </button>
+            </div>
+          </motion.div>
+
           {/* Drag & Drop Upload Card */}
+          {analysisMode === "screenshot" && (
           <motion.div initial={{ opacity: 0, y: 28 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1 }} onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop} className="relative overflow-hidden rounded-[36px] border border-white/8 bg-white/3 backdrop-blur-2xl transition-all duration-300">
             
             {/* NEW: ELEGANT HISTORY BUTTON INSIDE CARD */}
@@ -312,6 +371,34 @@ export default function ScanPage() {
               </div>
             </div>
           </motion.div>
+          )}
+
+          {analysisMode === "text" && (
+            <motion.div initial={{ opacity: 0, y: 28 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} className="relative overflow-hidden rounded-[36px] border border-white/8 bg-white/3 backdrop-blur-2xl">
+              <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
+              <div className="relative z-10 p-6 sm:p-10 md:p-14 space-y-6">
+                <div className="space-y-3">
+                  <p className="text-xs text-white/35 tracking-wide">{(t as any).textModeBadge || "DIRECT TEXT ANALYSIS"}</p>
+                  <h2 className="text-2xl sm:text-4xl font-medium tracking-[-0.03em]">{(t as any).textModeTitle || "Paste suspicious conversation."}</h2>
+                  <p className="text-white/45 text-base leading-relaxed">{(t as any).textModeDesc || "Enter chat text directly for AI analysis without OCR."}</p>
+                </div>
+                <div className="rounded-3xl border border-white/10 bg-black/30 p-3 sm:p-4">
+                  <textarea
+                    value={textInput}
+                    onChange={(e) => { setTextInput(e.target.value); if (textValidation) setTextValidation("") }}
+                    rows={8}
+                    placeholder={(t as any).textModePlaceholder || "Paste suspicious conversation here..."}
+                    className="w-full resize-y min-h-[180px] max-h-[460px] bg-transparent outline-none text-white/90 placeholder:text-white/35 text-sm sm:text-base leading-relaxed"
+                  />
+                  <div className="mt-2 text-right text-xs text-white/35">{textInput.length} chars</div>
+                </div>
+                {textValidation && <p className="text-sm text-red-300">{textValidation}</p>}
+                <button onClick={runTextAnalysis} disabled={loading} className="group h-11 sm:h-12 px-6 sm:px-8 rounded-2xl border border-white/10 bg-white text-black font-semibold text-sm hover:scale-[1.02] hover:bg-white/90 active:scale-95 transition-all shadow-[0_0_20px_rgba(255,255,255,0.15)] disabled:opacity-50">
+                  {(t as any).textAnalyzeBtn || "Analyze Conversation"}
+                </button>
+              </div>
+            </motion.div>
+          )}
 
           <AnimatePresence>
             {loading && (

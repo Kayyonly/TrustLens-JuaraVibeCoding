@@ -51,6 +51,14 @@ export const DICTIONARY = {
     historyEmpty: "Belum ada analisis.",
     historyEmptyDesc: "Hasil deteksi AI Anda akan tersimpan dengan aman secara lokal di perangkat ini.",
     historyAnalysis: "Analisis",
+    analyzerModeScreenshot: "Mode Screenshot",
+    analyzerModeText: "Mode Teks",
+    textModeTitle: "Tempel percakapan mencurigakan.",
+    textModeDesc: "Masukkan chat langsung untuk dianalisis AI tanpa OCR.",
+    textModePlaceholder: "Tempel percakapan mencurigakan di sini untuk analisis perilaku AI...",
+    textAnalyzeBtn: "Analisis Percakapan",
+    textValidation: "Percakapan tidak boleh kosong.",
+    textModeBadge: "ANALISIS TEKS LANGSUNG",
   },
   en: {
     navFeatures: "Features", navTech: "Technology", navAbout: "About", navScanner: "Open Scanner", navTechMobile: "Tech",
@@ -97,6 +105,14 @@ export const DICTIONARY = {
     historyEmpty: "No analysis history.",
     historyEmptyDesc: "Your AI detection results will be securely saved locally on this device.",
     historyAnalysis: "Analysis",
+    analyzerModeScreenshot: "Screenshot Mode",
+    analyzerModeText: "Text Mode",
+    textModeTitle: "Paste suspicious conversation.",
+    textModeDesc: "Enter chat text directly for AI analysis without OCR.",
+    textModePlaceholder: "Paste chat messages for AI behavioral analysis...",
+    textAnalyzeBtn: "Analyze Conversation",
+    textValidation: "Conversation text cannot be empty.",
+    textModeBadge: "DIRECT TEXT ANALYSIS",
   }
 }
 
