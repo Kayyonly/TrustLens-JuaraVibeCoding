@@ -29,6 +29,7 @@ type AnalysisResult = {
   }
   psychology_explanation: string
   recommended_actions: string[]
+  highlighted_segments?: { text: string; risk: "low" | "medium" | "high" | "critical"; reason: string }[]
 }
 
 type Props = { result: AnalysisResult }

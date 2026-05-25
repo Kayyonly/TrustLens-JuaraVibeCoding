@@ -47,6 +47,8 @@ function normalizeCategory(categoryName: string, lang: string): string {
   return categoryName; // Kembalikan apa adanya jika tidak ditemukan
 }
 
+type HighlightSegment = { text?: string; reason?: string; risk?: string }
+
 const JSON_STRUCTURE = `{
   "scam_probability": "e.g. '98%'",
   "threat_level": "Critical | High | Medium | Low",
@@ -69,7 +71,14 @@ const JSON_STRUCTURE = `{
     "impersonation_attempts": ["string"],
     "phishing_indicators": ["string"]
   },
-  "recommended_actions": ["string"]
+  "recommended_actions": ["string"],
+  "highlighted_segments": [
+    {
+      "text": "exact suspicious phrase from conversation",
+      "risk": "low | medium | high | critical",
+      "reason": "short explanation in requested language"
+    }
+  ]
 }`
 
 function buildPrompt(language: string, conversationNote: string): string {
@@ -112,6 +121,13 @@ Analyze and detect:
 - Emotional metrics (0-100 scale)
 - The exact scam category
 - Manipulation and psychological pressure tactics
+- Suspicious phrases for a threat heatmap overlay
+
+For highlighted_segments rules:
+- Extract exact snippets from the conversation text (no paraphrasing).
+- Include up to 10 most relevant snippets.
+- Assign each snippet with risk: low, medium, high, or critical.
+- Use concise reasons in the selected language.
 
 ${conversationNote}
 
@@ -152,6 +168,18 @@ export async function POST(req: Request) {
       parsedJson.scam_category.name = normalizeCategory(parsedJson.scam_category.name, language);
     }
     
+    if (!Array.isArray(parsedJson.highlighted_segments)) parsedJson.highlighted_segments = [];
+    parsedJson.highlighted_segments = parsedJson.highlighted_segments
+       .filter((segment: HighlightSegment) => segment?.text && segment?.reason)
+      .slice(0, 10)
+      .map((segment: HighlightSegment) => ({
+        text: String(segment.text),
+        reason: String(segment.reason),
+        risk: ["low", "medium", "high", "critical"].includes(String(segment.risk).toLowerCase())
+          ? String(segment.risk).toLowerCase()
+          : "medium",
+      }));
+
     // Normalisasi threat_level (Optional tapi bagus untuk UX)
     if (language === "id") {
        if (parsedJson.threat_level === "Critical") parsedJson.threat_level = "Kritis";
