@@ -7,7 +7,7 @@ export type Language = "id" | "en"
 
 export const DICTIONARY = {
   id: {
-    navFeatures: "Fitur", navTech: "Teknologi", navAbout: "Tentang Kami", navScanner: "Buka Scanner", navTechMobile: "Teknologi",
+    navFeatures: "Fitur", navTech: "Teknologi", navAbout: "Tentang Kami", navScanner: "Buka Scanner", navTechMobile: "Teknologi", navLearn: "Dokumen", navLearnMobile: "Belajar",
     heroBadge: "Deteksi Penipuan Bertenaga AI", heroTitle: "AI yang memahami manipulasi sebelum manusia menyadarinya.", heroDesc: "TrustLens menganalisis percakapan dan mengidentifikasi pola penipuan psikologis menggunakan AI yang cerdas secara emosional.", heroScanBtn: "Pindai Percakapan", heroDemoBtn: "Lihat Demo", heroTrust1: "Penalaran AI real-time", heroTrust2: "Analisis penipuan psikologis",
     featBadge: "Kemampuan AI", featTitle1: "Dirancang untuk memahami manipulasi ", featTitle2: "di balik kata-kata.", featDesc: "TrustLens menggabungkan kecerdasan OCR, analisis perilaku emosional, dan klasifikasi ancaman real-time untuk melindungi Anda dari pola psikologis penipuan modern.",
     featCards: [
@@ -61,7 +61,7 @@ export const DICTIONARY = {
     textModeBadge: "ANALISIS TEKS LANGSUNG",
   },
   en: {
-    navFeatures: "Features", navTech: "Technology", navAbout: "About", navScanner: "Open Scanner", navTechMobile: "Tech",
+    navFeatures: "Features", navTech: "Technology", navAbout: "About", navScanner: "Open Scanner", navTechMobile: "Tech", navLearn: "Documents", navLearnMobile: "Learn",
     heroBadge: "AI-Powered Scam Detection", heroTitle: "AI that understands manipulation before humans do.", heroDesc: "TrustLens analyzes conversations and identifies psychological scam patterns using emotionally intelligent AI.", heroScanBtn: "Scan Conversation", heroDemoBtn: "Watch Demo", heroTrust1: "Real-time AI reasoning", heroTrust2: "Psychological scam analysis",
     featBadge: "AI Capabilities", featTitle1: "Designed to understand manipulation ", featTitle2: "beyond words.", featDesc: "TrustLens combines OCR intelligence, emotional behavioral analysis, and real-time threat classification to protect you from the psychological patterns of modern scams.",
     featCards: [

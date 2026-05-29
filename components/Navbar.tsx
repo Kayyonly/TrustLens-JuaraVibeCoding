@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { useRouter, usePathname } from "next/navigation"
 import { motion } from "framer-motion"
-import { Sparkles, Cpu, Fingerprint, Globe } from "lucide-react"
+import { Sparkles, Cpu, Fingerprint, Globe, BookOpen } from "lucide-react"
 import { useLanguage } from "@/context/LanguageContext" // <-- IMPORT BARU
 
 export default function Navbar() {
@@ -39,6 +39,7 @@ export default function Navbar() {
             <div className="hidden md:flex items-center gap-8">
               <Link href="/#features" className="text-sm text-white/40 hover:text-white transition-colors duration-300">{t.navFeatures}</Link>
               <Link href="/#technology" className="text-sm text-white/40 hover:text-white transition-colors duration-300">{t.navTech}</Link>
+              <Link href="/learn" className="text-sm text-white/40 hover:text-white transition-colors duration-300">{t.navLearn}</Link>
               <Link href="/#about" className="text-sm text-white/40 hover:text-white transition-colors duration-300">{t.navAbout}</Link>
             </div>
 
@@ -69,6 +70,7 @@ export default function Navbar() {
         <motion.div initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2, duration: 0.8 }} className="pointer-events-auto flex items-center gap-1 p-1.5 rounded-[24px] border border-white/[0.1] bg-[#050505]/70 backdrop-blur-2xl shadow-[0_20px_40px_rgba(0,0,0,0.5)]">
           <MobileDockItem href="/#features" icon={Sparkles} label={t.navFeatures} />
           <MobileDockItem href="/#technology" icon={Cpu} label={t.navTechMobile} />
+          <MobileDockItem href="/learn" icon={BookOpen} label={t.navLearnMobile} />
           <MobileDockItem href="/#about" icon={Fingerprint} label={t.navAbout} />
         </motion.div>
       </div>
@@ -78,7 +80,7 @@ export default function Navbar() {
 
 function MobileDockItem({ href, icon: Icon, label }: { href: string, icon: React.ElementType, label: string }) {
   return (
-    <a href={href} className="relative flex flex-col items-center justify-center w-[72px] h-[56px] rounded-[18px] text-white/40 hover:text-white transition-colors group active:scale-95 duration-200">
+    <a href={href} className="relative flex flex-col items-center justify-center w-[64px] sm:w-[72px] h-[56px] rounded-[18px] text-white/40 hover:text-white transition-colors group active:scale-95 duration-200">
       <div className="absolute inset-0 bg-white/0 group-hover:bg-white/[0.08] rounded-[18px] transition-colors duration-300" />
       <Icon className="w-[18px] h-[18px] mb-1 group-hover:scale-110 transition-transform duration-300" strokeWidth={2} />
       <span className="text-[10px] font-medium tracking-wide">{label}</span>
