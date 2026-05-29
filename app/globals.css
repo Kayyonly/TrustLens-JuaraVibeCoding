@@ -132,3 +132,52 @@ html {
     @apply font-sans;
   }
 }
+.trustlens-workflow .react-flow__pane,
+.trustlens-workflow .react-flow__renderer,
+.trustlens-workflow .react-flow__nodes,
+.trustlens-workflow .react-flow__edges {
+  cursor: default;
+}
+
+.trustlens-workflow .react-flow__node {
+  cursor: default;
+}
+
+.trustlens-workflow .react-flow__edge-path {
+  filter: drop-shadow(0 0 7px rgba(103, 232, 249, 0.32));
+  transition: stroke 500ms ease, stroke-width 500ms ease, filter 500ms ease;
+}
+
+.trustlens-workflow .trustlens-edge-active .react-flow__edge-path {
+  filter: drop-shadow(0 0 10px rgba(103, 232, 249, 0.82)) drop-shadow(0 0 18px rgba(96, 165, 250, 0.35));
+  stroke-dasharray: 8 12;
+  animation: trustlens-edge-flow 1.15s linear infinite;
+}
+
+.trustlens-workflow .trustlens-edge-complete .react-flow__edge-path {
+  filter: drop-shadow(0 0 8px rgba(147, 197, 253, 0.42));
+}
+
+.trustlens-workflow .trustlens-edge-idle .react-flow__edge-path {
+  filter: none;
+}
+
+@keyframes trustlens-edge-flow {
+  from {
+    stroke-dashoffset: 20;
+  }
+
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes trustlens-status-scan {
+  0% {
+    transform: translateX(-120%);
+  }
+
+  100% {
+    transform: translateX(240%);
+  }
+}
