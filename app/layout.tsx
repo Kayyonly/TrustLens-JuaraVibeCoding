@@ -7,7 +7,7 @@ const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
 export const viewport: Viewport = { width: "device-width", initialScale: 1 };
-export const metadata: Metadata = { title: "TrustLens", description: "AI Scam Detection" };
+export const metadata: Metadata = { title: "TrustLens", description: "Scam intelligence for phishing, impersonation, and emotional manipulation analysis" };
 
 export default function RootLayout({
   children,

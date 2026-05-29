@@ -10,12 +10,12 @@ export default function Footer() {
           </h3>
 
           <p className="text-white/40 text-sm mt-2">
-            AI-powered psychological scam detection.
+            Scam intelligence for safer digital decisions.
           </p>
         </div>
 
         <p className="text-white/30 text-sm">
-          Built for JuaraVibeCoding.
+          Built for focused scam investigation.
         </p>
 
       </div>

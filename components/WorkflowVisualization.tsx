@@ -59,67 +59,67 @@ const workflowIcons = {
 const workflowSteps = [
   {
     id: "upload",
-    title: "Upload Screenshot",
-    description: "Secure image intake initialized",
+    title: "Evidence Intake",
+    description: "Screenshot staged securely",
     icon: "upload",
     accent: "#67e8f9",
-    log: "Screenshot uploaded into the TrustLens runtime.",
+    log: "Evidence received. Runtime is preparing the conversation image for analysis.",
   },
   {
     id: "ocr",
-    title: "OCR Extraction",
-    description: "Message text detected",
+    title: "Text Capture",
+    description: "Conversation text isolated",
     icon: "ocr",
     accent: "#7dd3fc",
-    log: "OCR text detected from the conversation image.",
+    log: "OCR layer isolated message text and preserved source context for review.",
   },
   {
     id: "cleanup",
-    title: "Text Cleanup",
-    description: "Noise and symbols normalized",
+    title: "Signal Cleanup",
+    description: "Noise removed, structure retained",
     icon: "cleanup",
     accent: "#bfdbfe",
-    log: "Text cleanup completed and suspicious phrases normalized.",
+    log: "OCR noise reduced. Message boundaries, links, and suspicious phrases are normalized.",
   },
   {
     id: "gemini",
-    title: "Gemini AI Analysis",
-    description: "Context and intent mapped",
+    title: "Context Reasoning",
+    description: "Intent and narrative mapped",
     icon: "gemini",
     accent: "#93c5fd",
-    log: "Gemini AI is mapping context, intent, and persuasion patterns.",
+    log: "Reasoning model is mapping context, intent, and persuasion patterns.",
   },
   {
     id: "emotion",
-    title: "Emotional Detection",
-    description: "Urgency pressure inspected",
+    title: "Pressure Analysis",
+    description: "Emotional leverage inspected",
     icon: "emotion",
     accent: "#22d3ee",
-    log: "Analyzing emotional pressure and urgency triggers.",
+    log: "Emotional pressure, secrecy cues, and urgency triggers are being scored.",
   },
   {
     id: "scam",
-    title: "Scam Classification",
-    description: "Known fraud tactics matched",
+    title: "Scam Typology",
+    description: "Known tactics matched",
     icon: "scam",
     accent: "#c7d2fe",
-    log: "Scam classification matched social-engineering indicators.",
+    log: "Classifier matched the exchange against known scam and phishing patterns.",
   },
   {
     id: "score",
-    title: "Threat Scoring",
-    description: "Risk confidence calibrated",
+    title: "Risk Calibration",
+    description: "Probability and confidence set",
     icon: "score",
     accent: "#dbeafe",
-    log: "Threat score generated from behavioral and textual signals.",
+    log: "Risk score calibrated from behavioral, textual, and forensic signals.",
   },
   {
     id: "export",
-    title: "PDF Export",
-    description: "Evidence report prepared",
+    title: "Investigation PDF",
+    description: "Dossier ready for export",
     icon: "export",
     accent: "#e0f2fe",
-    log: "PDF export prepared with evidence and AI explanation.",
+    log: "Investigation dossier compiled with evidence, scoring, and analyst-readable findings.",
   },
 ] as const
 
@@ -140,31 +140,31 @@ function useIsMobileWorkflow() {
 }
 
 function statusLabel(status: WorkflowStatus) {
-  if (status === "completed") return "Completed"
-  if (status === "processing") return "Processing"
-  return "Waiting"
+  if (status === "completed") return "Complete"
+  if (status === "processing") return "Analyzing"
+  return "Queued"
 }
 
 const TrustLensWorkflowNode = memo(function TrustLensWorkflowNode({ data }: NodeProps<WorkflowNode>) {
   const Icon = workflowIcons[data.icon]
-  const isProcessing = data.status === "processing"
-  const isCompleted = data.status === "completed"
+  const isAnalyzing = data.status === "processing"
+  const isComplete = data.status === "completed"
   const sourcePosition = data.orientation === "vertical" ? Position.Bottom : Position.Right
   const targetPosition = data.orientation === "vertical" ? Position.Top : Position.Left
 
   return (
     <div
       className={`group relative w-[184px] rounded-[20px] border bg-[#090d16]/90 px-3.5 py-3.5 shadow-[0_18px_70px_rgba(0,0,0,0.45)] backdrop-blur-xl transition-all duration-500 ${
-        isProcessing
+        isAnalyzing
           ? "scale-[1.03] border-cyan-200/80 shadow-[0_0_42px_rgba(34,211,238,0.32),0_18px_70px_rgba(0,0,0,0.45)]"
-          : isCompleted
+          : isComplete
             ? "border-sky-200/45 shadow-[0_0_26px_rgba(147,197,253,0.18),0_18px_70px_rgba(0,0,0,0.45)]"
             : "border-white/10"
       }`}
       style={{
-        boxShadow: isProcessing
+        boxShadow: isAnalyzing
           ? `0 0 34px ${data.accent}48, 0 18px 70px rgba(0,0,0,.45)`
-          : isCompleted
+          : isComplete
             ? `0 0 22px ${data.accent}24, 0 18px 70px rgba(0,0,0,.45)`
             : undefined,
       }}
@@ -174,14 +174,14 @@ const TrustLensWorkflowNode = memo(function TrustLensWorkflowNode({ data }: Node
 
       <div className="pointer-events-none absolute inset-0 rounded-[20px] bg-[radial-gradient(circle_at_20%_0%,rgba(255,255,255,0.13),transparent_32%),linear-gradient(135deg,rgba(56,189,248,0.08),transparent_45%)]" />
       <div
-        className={`pointer-events-none absolute -inset-px rounded-[20px] blur-md transition-opacity duration-500 ${isProcessing ? "opacity-100" : isCompleted ? "opacity-35" : "opacity-0"}`}
+        className={`pointer-events-none absolute -inset-px rounded-[20px] blur-md transition-opacity duration-500 ${isAnalyzing ? "opacity-100" : isComplete ? "opacity-35" : "opacity-0"}`}
         style={{ background: `linear-gradient(135deg, ${data.accent}3d, transparent 58%)` }}
       />
 
       <div className="relative space-y-3">
         <div className="flex items-start gap-3">
           <div
-            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border bg-white/[0.035] transition-transform duration-500 ${isProcessing ? "scale-110 animate-pulse" : ""}`}
+            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border bg-white/[0.035] transition-transform duration-500 ${isAnalyzing ? "scale-110 animate-pulse" : ""}`}
             style={{ borderColor: `${data.accent}50`, color: data.accent }}
           >
             <Icon className="h-[18px] w-[18px]" />
@@ -190,12 +190,12 @@ const TrustLensWorkflowNode = memo(function TrustLensWorkflowNode({ data }: Node
           <div className="min-w-0 flex-1">
             <div className="flex items-center justify-between gap-2">
               <span className="font-mono text-[10px] tracking-[0.24em] text-white/35">{data.index}</span>
-              {isCompleted ? (
+              {isComplete ? (
                 <span className="inline-flex items-center gap-1 rounded-full border border-sky-200/20 bg-sky-200/10 px-2 py-0.5 text-[10px] font-medium text-sky-100">
                   <CheckCircle2 className="h-3 w-3" /> Done
                 </span>
               ) : (
-                <span className={`h-1.5 w-1.5 rounded-full ${isProcessing ? "bg-cyan-200 shadow-[0_0_12px_rgba(103,232,249,0.95)]" : "bg-white/20"}`} />
+                <span className={`h-1.5 w-1.5 rounded-full ${isAnalyzing ? "bg-cyan-200 shadow-[0_0_12px_rgba(103,232,249,0.95)]" : "bg-white/20"}`} />
               )}
             </div>
             <h3 className="mt-1.5 truncate text-sm font-medium tracking-[-0.01em] text-white">{data.title}</h3>
@@ -205,14 +205,14 @@ const TrustLensWorkflowNode = memo(function TrustLensWorkflowNode({ data }: Node
 
         <div
           className={`relative overflow-hidden rounded-full border px-3 py-1.5 text-[11px] font-medium transition-colors duration-500 ${
-            isProcessing
+            isAnalyzing
               ? "border-cyan-200/25 bg-cyan-200/10 text-cyan-100"
-              : isCompleted
+              : isComplete
                 ? "border-sky-200/20 bg-sky-200/10 text-sky-100"
                 : "border-white/10 bg-white/[0.03] text-white/40"
           }`}
         >
-          {isProcessing ? <span className="absolute inset-y-0 left-0 w-1/2 animate-[trustlens-status-scan_1.2s_ease-in-out_infinite] bg-gradient-to-r from-transparent via-white/15 to-transparent" /> : null}
+          {isAnalyzing ? <span className="absolute inset-y-0 left-0 w-1/2 animate-[trustlens-status-scan_1.2s_ease-in-out_infinite] bg-gradient-to-r from-transparent via-white/15 to-transparent" /> : null}
           <span className="relative">{statusLabel(data.status)}</span>
         </div>
       </div>
@@ -288,7 +288,7 @@ export default function WorkflowVisualization() {
 
   const edges = useMemo<Edge[]>(() => {
     return workflowSteps.slice(0, -1).map((step, index) => {
-      const edgeCompleted = activeStep >= workflowSteps.length || index < activeStep
+      const edgeComplete = activeStep >= workflowSteps.length || index < activeStep
       const edgeActive = isRunning && index === activeStep
 
       return {
@@ -296,25 +296,25 @@ export default function WorkflowVisualization() {
         source: step.id,
         target: workflowSteps[index + 1].id,
         type: "smoothstep",
-        animated: edgeCompleted || edgeActive,
-        className: edgeActive ? "trustlens-edge-active" : edgeCompleted ? "trustlens-edge-complete" : "trustlens-edge-idle",
+        animated: edgeComplete || edgeActive,
+        className: edgeActive ? "trustlens-edge-active" : edgeComplete ? "trustlens-edge-complete" : "trustlens-edge-idle",
         markerEnd: {
           type: MarkerType.ArrowClosed,
-          color: edgeCompleted || edgeActive ? "#67e8f9" : "rgba(255,255,255,0.18)",
+          color: edgeComplete || edgeActive ? "#67e8f9" : "rgba(255,255,255,0.18)",
           width: 16,
           height: 16,
         },
         style: {
-          stroke: edgeCompleted || edgeActive ? "#67e8f9" : "rgba(255,255,255,0.16)",
-          strokeWidth: edgeActive ? 2.8 : edgeCompleted ? 1.8 : 1.25,
+          stroke: edgeComplete || edgeActive ? "#67e8f9" : "rgba(255,255,255,0.16)",
+          strokeWidth: edgeActive ? 2.8 : edgeComplete ? 1.8 : 1.25,
         },
       }
     })
   }, [activeStep, isRunning])
 
-  const visibleLogs = useMemo(() => {
-    if (activeStep < 0) return ["Runtime idle. Load a screenshot to begin simulation."]
-    if (activeStep >= workflowSteps.length) return [...workflowSteps.map((step) => step.log), "Simulation complete. TrustLens report is ready."]
+  const visibleEvents = useMemo(() => {
+    if (activeStep < 0) return ["Runtime idle. Start the simulation to watch the analysis sequence."]
+    if (activeStep >= workflowSteps.length) return [...workflowSteps.map((step) => step.log), "Simulation complete. The TrustLens investigation report is ready."]
     return workflowSteps.slice(0, activeStep + 1).map((step) => step.log)
   }, [activeStep])
 
@@ -334,15 +334,15 @@ export default function WorkflowVisualization() {
           className="shrink-0 flex flex-col gap-3 rounded-[26px] border border-white/[0.08] bg-[#080b12]/70 px-4 py-3 shadow-[0_20px_80px_rgba(0,0,0,0.35)] backdrop-blur-2xl md:flex-row md:items-center md:justify-between"
         >
           <div className="flex items-center gap-4">
-            <Link href="/" className="flex h-10 w-10 items-center justify-center rounded-2xl border border-white/[0.08] bg-white/[0.04] text-white/60 transition hover:bg-white/[0.08] hover:text-white" aria-label="Back to homepage">
+            <Link href="/" className="flex h-10 w-10 items-center justify-center rounded-2xl border border-white/[0.08] bg-white/[0.04] text-white/60 transition hover:bg-white/[0.08] hover:text-white" aria-label="Back to home">
               <Home className="h-4 w-4" />
             </Link>
             <div>
               <div className="flex items-center gap-3">
                 <span className="h-2 w-2 rounded-full bg-cyan-200 shadow-[0_0_18px_rgba(103,232,249,0.9)]" />
-                <p className="text-xs font-medium uppercase tracking-[0.24em] text-cyan-100/55">TrustLens Workflow Lab</p>
+                <p className="text-xs font-medium uppercase tracking-[0.24em] text-cyan-100/55">TrustLens Runtime Lab</p>
               </div>
-              <h1 className="mt-1.5 text-xl font-light tracking-[-0.04em] text-white md:text-3xl">AI scam-analysis runtime simulation</h1>
+              <h1 className="mt-1.5 text-xl font-light tracking-[-0.04em] text-white md:text-3xl">Scam analysis, staged in real time</h1>
             </div>
           </div>
 
@@ -354,7 +354,7 @@ export default function WorkflowVisualization() {
               className="inline-flex h-11 items-center gap-2 rounded-2xl bg-cyan-100 px-5 text-sm font-semibold text-black shadow-[0_0_28px_rgba(103,232,249,0.25)] transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-40"
             >
               <Play className="h-4 w-4" />
-              {isComplete ? "Run Again" : isRunning ? "Running" : "Start Simulation"}
+              {isComplete ? "Run Again" : isRunning ? "Running" : "Start Run"}
             </button>
             <button
               type="button"
@@ -362,7 +362,7 @@ export default function WorkflowVisualization() {
               className="inline-flex h-11 items-center gap-2 rounded-2xl border border-white/[0.08] bg-white/[0.035] px-5 text-sm font-medium text-white/70 transition hover:bg-white/[0.08] hover:text-white"
             >
               <RotateCcw className="h-4 w-4" />
-              Reset Flow
+              Reset
             </button>
           </div>
         </motion.header>
@@ -380,12 +380,12 @@ export default function WorkflowVisualization() {
 
             <div className="absolute left-4 right-4 top-4 z-10 flex flex-col gap-3 rounded-3xl border border-white/[0.07] bg-[#070b14]/72 p-3.5 backdrop-blur-xl md:flex-row md:items-center md:justify-between">
               <div>
-                <p className="text-xs uppercase tracking-[0.22em] text-white/35">Visual Analysis Pipeline</p>
-                <p className="mt-1 text-sm text-white/55">View-only canvas · no dragging · no editing · no workflow creation</p>
+                <p className="text-xs uppercase tracking-[0.22em] text-white/35">Analysis Pipeline</p>
+                <p className="mt-1 text-sm text-white/55">Read-only canvas · fixed sequence · production scanner unchanged</p>
               </div>
               <div className="min-w-[220px]">
                 <div className="mb-2 flex items-center justify-between text-xs text-white/45">
-                  <span>{isComplete ? "Complete" : isRunning ? "Processing" : "Idle"}</span>
+                  <span>{isComplete ? "Complete" : isRunning ? "Analyzing" : "Idle"}</span>
                   <span>{Math.round(progress)}%</span>
                 </div>
                 <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
@@ -425,14 +425,14 @@ export default function WorkflowVisualization() {
             className="flex min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden rounded-[30px] border border-white/[0.08] bg-[#080c15]/78 p-4 shadow-[0_28px_100px_rgba(0,0,0,0.4)] backdrop-blur-2xl lg:w-[300px] lg:max-w-[300px] lg:shrink-0 lg:flex-none"
           >
             <div className="border-b border-white/[0.08] pb-4">
-              <p className="text-xs uppercase tracking-[0.22em] text-white/35">Live Status</p>
+              <p className="text-xs uppercase tracking-[0.22em] text-white/35">Runtime Feed</p>
               <h2 className="mt-1.5 text-xl font-light tracking-[-0.04em]">Runtime telemetry</h2>
-              <p className="mt-2 text-sm leading-relaxed text-white/45">A compact feed of TrustLens scam-intelligence stages as the simulation advances.</p>
+              <p className="mt-2 text-sm leading-relaxed text-white/45">A concise feed of analysis events as TrustLens moves from evidence intake to report generation.</p>
             </div>
 
             <div className="mt-4 min-h-0 flex-1 space-y-3 overflow-y-auto overflow-x-hidden pr-1">
-              {visibleLogs.map((log, index) => {
-                const newest = index === visibleLogs.length - 1 && activeStep >= 0 && !isComplete
+              {visibleEvents.map((log, index) => {
+                const newest = index === visibleEvents.length - 1 && activeStep >= 0 && !isComplete
                 return (
                   <motion.div
                     key={`${log}-${index}`}
@@ -447,7 +447,7 @@ export default function WorkflowVisualization() {
                   >
                     <div className="mb-1 flex items-center gap-2 text-[10px] uppercase tracking-[0.18em] text-white/35">
                       <span className={`h-1.5 w-1.5 rounded-full ${newest ? "animate-pulse bg-cyan-200" : "bg-blue-200/45"}`} />
-                      {newest ? "Processing" : "Log"}
+                      {newest ? "Analyzing" : "Event"}
                     </div>
                     {log}
                   </motion.div>
@@ -457,9 +457,9 @@ export default function WorkflowVisualization() {
 
             <div className="mt-auto pt-5">
               <div className="rounded-3xl border border-sky-200/12 bg-white/[0.035] p-4">
-                <p className="text-xs uppercase tracking-[0.2em] text-sky-100/45">Engine Mode</p>
-                <p className="mt-2 text-sm font-medium text-sky-50">Visual-only simulation</p>
-                <p className="mt-1 text-xs leading-relaxed text-sky-100/45">This page does not alter scanner flow, backend analysis, or saved reports.</p>
+                <p className="text-xs uppercase tracking-[0.2em] text-sky-100/45">Run Mode</p>
+                <p className="mt-2 text-sm font-medium text-sky-50">Visual simulation</p>
+                <p className="mt-1 text-xs leading-relaxed text-sky-100/45">This view is a safe demo layer. It does not alter scanner logic, backend analysis, or saved reports.</p>
               </div>
             </div>
           </motion.aside>

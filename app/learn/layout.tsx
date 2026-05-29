@@ -1,9 +1,9 @@
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
-  title: "Documents / Learn | TrustLens AI Scam Intelligence",
+  title: "Learn | TrustLens Scam Intelligence",
   description:
-    "Learn how TrustLens detects scam psychology, phishing patterns, emotional manipulation, and cybersecurity threats with AI-powered education.",
+    "Learn how TrustLens analyzes scam psychology, phishing patterns, emotional manipulation, and safer response workflows.",
   keywords: [
     "AI scam detector",
     "romance scam detection",
@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/learn" },
   openGraph: {
     title: "TrustLens Documents / Learn",
-    description: "AI scam intelligence, cybersecurity awareness, and emotional manipulation education.",
+    description: "Scam intelligence, phishing awareness, and emotional manipulation education.",
     type: "website",
   },
 }

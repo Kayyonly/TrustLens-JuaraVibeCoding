@@ -8,7 +8,7 @@ import { useLanguage } from "@/context/LanguageContext"
 export default function ScanLoading() {
   const { t } = useLanguage()
   const [activeStep, setActiveStep] = useState(0)
-  
+
   // Animasi Persentase
   const count = useMotionValue(0)
   const roundedPercent = useTransform(count, Math.round)
@@ -47,7 +47,7 @@ export default function ScanLoading() {
           <div className="h-12 border-b border-white/[0.08] bg-white/[0.02] flex items-center justify-between px-6">
             <div className="flex items-center gap-3">
               <Terminal className="w-4 h-4 text-white/50" />
-              <span className="text-xs text-white/50 font-mono tracking-widest uppercase">System.Log</span>
+              <span className="text-xs text-white/50 font-mono tracking-widest uppercase">Analysis Feed</span>
             </div>
           </div>
 
