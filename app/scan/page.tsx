@@ -380,7 +380,7 @@ export default function ScanPage() {
                 <div className="space-y-3">
                   <p className="text-xs text-white/35 tracking-wide">{(t as any).textModeBadge || "DIRECT TEXT ANALYSIS"}</p>
                   <h2 className="text-2xl sm:text-4xl font-medium tracking-[-0.03em]">{(t as any).textModeTitle || "Paste suspicious conversation."}</h2>
-                  <p className="text-white/45 text-base leading-relaxed">{(t as any).textModeDesc || "Enter chat text directly for AI analysis without OCR."}</p>
+                  <p className="text-white/45 text-base leading-relaxed">{(t as any).textModeDesc || "Paste text directly when you do not have a screenshot."}</p>
                 </div>
                 <div className="rounded-3xl border border-white/10 bg-black/30 p-3 sm:p-4">
                   <textarea
@@ -394,7 +394,7 @@ export default function ScanPage() {
                 </div>
                 {textValidation && <p className="text-sm text-red-300">{textValidation}</p>}
                 <button onClick={runTextAnalysis} disabled={loading} className="group h-11 sm:h-12 px-6 sm:px-8 rounded-2xl border border-white/10 bg-white text-black font-semibold text-sm hover:scale-[1.02] hover:bg-white/90 active:scale-95 transition-all shadow-[0_0_20px_rgba(255,255,255,0.15)] disabled:opacity-50">
-                  {(t as any).textAnalyzeBtn || "Analyze Conversation"}
+                  {(t as any).textAnalyzeBtn || "Analyze Text"}
                 </button>
               </div>
             </motion.div>

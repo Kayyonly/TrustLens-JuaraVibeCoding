@@ -91,18 +91,18 @@ Respond FULLY in natural, modern, and premium Indonesian (Bahasa Indonesia).
 - All scam category names MUST be translated into natural Indonesian. 
   (Examples: "Romance Scam" -> "Penipuan Romansa", "Impersonation" -> "Penipuan Penyamaran", "Pig Butchering" -> "Manipulasi Investasi Emosional").
 - The summary, psychological explanation, manipulation tactics, and recommendations MUST be 100% in Indonesian.
-- Keep the tone calm, highly intelligent, empathetic, and premium (like an elite cyber-security advisor).
+- Keep the tone calm, precise, empathetic, and production-ready, like a senior cybersecurity analyst.
 `
     : `
 CRITICAL LANGUAGE REQUIREMENT:
 Respond FULLY in professional, modern, and premium English.
-- Keep a cinematic AI tone.
+- Use concise, premium, analyst-grade language without hype.
 - Keep an intelligent cybersecurity advisory style.
 - Maintain calm, empathetic, and highly analytical explanations.
 `
 
   return `
-You are TrustLens AI — an elite, emotionally intelligent psychological cyber defense AI.
+You are TrustLens, a calm cybersecurity analysis system for scam, phishing, impersonation, and emotional-manipulation investigation.
 
 ${languageInstruction}
 
@@ -193,9 +193,9 @@ export async function POST(req: Request) {
       result: parsedJson,
     })
   } catch (error) {
-    console.error("AI Analysis Error:", error)
+    console.error("TrustLens analysis failed:", error)
     return NextResponse.json(
-      { success: false, error: "AI analysis failed. Please try again." },
+      { success: false, error: "TrustLens could not complete the analysis. Please try again with clearer evidence or shorter text." },
       { status: 500 }
     )
   }

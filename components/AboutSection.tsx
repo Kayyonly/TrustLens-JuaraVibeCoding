@@ -2,13 +2,13 @@
 
 import React from "react"
 import { motion, Variants } from "framer-motion"
-import { 
-  ScanLine, 
-  BrainCircuit, 
-  ShieldAlert, 
-  Activity, 
-  FileText, 
-  Lock, 
+import {
+  ScanLine,
+  BrainCircuit,
+  ShieldAlert,
+  Activity,
+  FileText,
+  Lock,
   ChevronRight,
   Search,
   ShieldCheck
@@ -32,30 +32,30 @@ export default function AboutSection() {
   const features = [
     {
       title: "Scam Classification",
-      description: "Instantly identifies known fraud patterns, from investment scams to sophisticated phishing attempts.",
+      description: "Identifies common and emerging fraud patterns across investment, phishing, emergency, and impersonation scenarios.",
       icon: Search
     },
     {
       title: "Emotional Analysis",
-      description: "Measures invisible psychological pressure like fear, manufactured urgency, and trust exploitation.",
+      description: "Measures fear, urgency, isolation, and trust abuse without burying the user in technical language.",
       icon: Activity
     },
     {
-      title: "Clean OCR Engine",
-      description: "Extracts and sanitizes messy, unreadable text from screenshots with high precision.",
+      title: "Clean OCR",
+      description: "Extracts conversation text from screenshots and turns it into readable evidence for review.",
       icon: FileText
     },
     {
-      title: "Threat Intelligence",
-      description: "Delivers a comprehensive breakdown of tactics and actionable steps to protect yourself.",
+      title: "Actionable Guidance",
+      description: "Turns detected signals into plain-language next steps for verification, blocking, reporting, and evidence preservation.",
       icon: ShieldCheck
     }
   ]
 
   const pipelineSteps = [
-    { label: "Screenshot", icon: FileText },
-    { label: "OCR Clean", icon: ScanLine },
-    { label: "AI Brain", icon: BrainCircuit },
+    { label: "Evidence", icon: FileText },
+    { label: "Cleanup", icon: ScanLine },
+    { label: "Analysis", icon: BrainCircuit },
     { label: "Report", icon: ShieldAlert },
   ]
 
@@ -65,9 +65,9 @@ export default function AboutSection() {
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[600px] bg-white/[0.02] blur-[120px] rounded-full pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-6 relative z-10 space-y-32">
-        
+
         {/* --- HEADER SECTION --- */}
-        <motion.div 
+        <motion.div
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-100px" }}
@@ -78,23 +78,23 @@ export default function AboutSection() {
           <motion.div variants={fadeUp} className="inline-flex items-center gap-3 rounded-full border border-white/[0.08] bg-white/[0.02] backdrop-blur-md px-4 py-2 shadow-[0_0_20px_rgba(255,255,255,0.02)]">
             <div className="w-2 h-2 rounded-full bg-white shadow-[0_0_10px_rgba(255,255,255,0.8)] animate-pulse" />
             <span className="text-xs text-white/60 tracking-[0.2em] uppercase font-medium">
-              AI Trust Intelligence
+              Trust Intelligence
             </span>
           </motion.div>
 
           {/* Main Headline */}
           <motion.h2 variants={fadeUp} className="text-5xl md:text-7xl font-light tracking-[-0.04em] text-white leading-[1.1]">
-            TrustLens is more than a <span className="text-white/40 italic">scanner.</span>
+            TrustLens is a <span className="text-white/40 italic">decision layer.</span>
           </motion.h2>
 
           {/* Description */}
           <motion.p variants={fadeUp} className="text-lg md:text-xl text-white/50 leading-relaxed font-light">
-            We built a psychological defense engine. TrustLens doesnt just read words—it analyzes the invisible patterns of manipulation, detecting manufactured urgency, emotional exploitation, and impersonation before you make a costly mistake.
+            TrustLens helps you pause, read the context, and understand the pressure being applied in a conversation—before money, data, or trust changes hands.
           </motion.p>
         </motion.div>
 
         {/* --- AI PIPELINE VISUAL --- */}
-        <motion.div 
+        <motion.div
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-100px" }}
@@ -102,7 +102,7 @@ export default function AboutSection() {
           className="relative max-w-5xl mx-auto"
         >
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.03] to-transparent rounded-3xl" />
-          
+
           <div className="relative rounded-3xl border border-white/[0.08] bg-white/[0.01] backdrop-blur-xl p-8 md:p-12 flex flex-col md:flex-row items-center justify-between gap-6 md:gap-4 shadow-[0_0_40px_rgba(255,255,255,0.01)]">
             {pipelineSteps.map((step, index) => (
               <React.Fragment key={step.label}>
@@ -128,7 +128,7 @@ export default function AboutSection() {
         </motion.div>
 
         {/* --- CORE FEATURES GRID --- */}
-        <motion.div 
+        <motion.div
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-100px" }}
@@ -138,14 +138,14 @@ export default function AboutSection() {
           {features.map((feature, i) => {
             const Icon = feature.icon;
             return (
-              <motion.div 
-                key={i} 
+              <motion.div
+                key={i}
                 variants={fadeUp}
                 className="group relative rounded-3xl border border-white/[0.08] bg-white/[0.02] backdrop-blur-md p-8 hover:bg-white/[0.04] transition-all duration-500 overflow-hidden"
               >
                 {/* Hover gradient background */}
                 <div className="absolute inset-0 bg-gradient-to-br from-white/[0.05] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                
+
                 <div className="relative z-10 flex flex-col gap-6">
                   <div className="w-12 h-12 rounded-xl border border-white/[0.1] bg-white/[0.03] flex items-center justify-center">
                     <Icon className="w-5 h-5 text-white/80" />
@@ -165,7 +165,7 @@ export default function AboutSection() {
         </motion.div>
 
         {/* --- TRUST STATEMENT BLOCK --- */}
-        <motion.div 
+        <motion.div
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-50px" }}

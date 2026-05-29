@@ -66,7 +66,7 @@ export default function ThreatHeatmap({ text, segments = [], title }: Props) {
       <div className="flex items-center justify-between mb-4">
         <p className="text-xs sm:text-sm tracking-[0.22em] uppercase text-white/45">{title}</p>
         <div className="flex items-center gap-2 text-[10px] sm:text-xs text-white/50">
-          <span className="h-2 w-2 rounded-full bg-cyan-200/70 animate-pulse" /> AI Threat Heatmap
+          <span className="h-2 w-2 rounded-full bg-cyan-200/70 animate-pulse" /> Risk Heatmap
         </div>
       </div>
 

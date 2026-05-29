@@ -31,11 +31,11 @@ export default function ScanUpload() {
         <div className="space-y-4">
 
           <h2 className="text-3xl md:text-4xl font-semibold tracking-[-0.04em]">
-            Upload a conversation screenshot
+            Upload conversation evidence
           </h2>
 
           <p className="text-white/50 text-lg max-w-xl leading-relaxed">
-            TrustLens will analyze emotional pressure, manipulation patterns, and scam probability using AI.
+            TrustLens reviews emotional pressure, manipulation patterns, impersonation cues, and scam probability.
           </p>
 
         </div>
@@ -46,7 +46,7 @@ export default function ScanUpload() {
           <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition duration-500 bg-gradient-to-r from-transparent via-black/10 to-transparent -translate-x-full group-hover:translate-x-full" />
 
           <span className="relative z-10">
-            Select Screenshot
+            Select Evidence
           </span>
 
         </button>

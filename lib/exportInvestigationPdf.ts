@@ -36,7 +36,7 @@ export async function exportInvestigationPdf(result: AnalysisResult, labels: Pdf
   const fileName = `trustlens-analysis-${levelSlug}-${dateSlug}.pdf`
 
   const win = window.open("", "_blank", "width=900,height=1200")
-  if (!win) throw new Error("Popup blocked")
+  if (!win) throw new Error("The PDF window was blocked by the browser.")
 
   const segs = (result.highlighted_segments || []).map((s, i) => `<li><strong>[${s.risk.toUpperCase()}]</strong> ${i + 1}. ${s.text}<br/><span>${s.reason}</span></li>`).join("")
   const recs = result.recommended_actions.map((r, i) => `<li>${i + 1}. ${r}</li>`).join("")
