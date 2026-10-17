@@ -1,202 +1,81 @@
-import { GoogleGenerativeAI, Part } from "@google/generative-ai"
 import { NextResponse } from "next/server"
+import { analyzeWithConfiguredProvider, AiProviderError } from "@/lib/ai/provider"
+import { readJsonBody, RequestValidationError, clientIpKey } from "@/lib/server/http"
+import { checkRateLimit } from "@/lib/server/rate-limit"
 
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY!)
-const model = genAI.getGenerativeModel({ model: "gemini-3.1-flash-lite" })
+export const runtime = "nodejs"
+const MAX_BODY_BYTES = 4_000_000
+const MAX_TEXT_LENGTH = 20_000
+const MAX_IMAGE_BASE64_LENGTH = 3_700_000
+const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"])
 
-// --- LAPIS 2: KAMUS DARURAT (NORMALIZATION MAP) ---
-// Jika Gemini masih membandel memberikan kategori bahasa Inggris saat mode 'id', ini akan menimpanya.
-const categoryTranslationMap: Record<string, string> = {
-  "Romance Scam": "Penipuan Romansa",
-  "Pig Butchering": "Manipulasi Investasi Berkedok Romansa",
-  "Pig Butchering Prelude": "Manipulasi Investasi Berkedok Romansa",
-  "Romance Scam / Pig Butchering Prelude": "Penipuan Romansa & Investasi",
-  "Impersonation Scam": "Penipuan Penyamaran Identitas",
-  "Impersonation": "Penyamaran Identitas",
-  "Emergency Scam": "Penipuan Kondisi Darurat",
-  "Giveaway Scam": "Penipuan Hadiah / Undian",
-  "Crypto Scam": "Penipuan Investasi Kripto",
-  "Investment Scam": "Penipuan Investasi Fiktif",
-  "Job Scam": "Penipuan Lowongan Kerja",
-  "OTP Scam": "Pencurian Kode OTP",
-  "Sextortion Scam": "Pemerasan Seksual (Sextortion)",
-  "Phishing Scam": "Upaya Phishing",
-  "Social Engineering": "Rekayasa Sosial",
-  "Unknown / Suspicious Activity": "Aktivitas Mencurigakan",
-  "Financial Fraud": "Penipuan Finansial",
-  "Tech Support Scam": "Penipuan Dukungan Teknis",
-  "Suspicious Analysis": "Analisis Mencurigakan"
+function matchesImageType(image: string, mimeType: string): boolean {
+  const bytes = Buffer.from(image, "base64")
+  if (mimeType === "image/jpeg") return bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff
+  if (mimeType === "image/png") return bytes.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]))
+  if (mimeType === "image/webp") return bytes.toString("ascii", 0, 4) === "RIFF" && bytes.toString("ascii", 8, 12) === "WEBP"
+  if (mimeType === "image/gif") return ["GIF87a", "GIF89a"].includes(bytes.toString("ascii", 0, 6))
+  return false
 }
 
-// Fungsi pembantu untuk memastikan kategori diterjemahkan
-function normalizeCategory(categoryName: string, lang: string): string {
-  if (lang !== "id") return categoryName;
-  
-  // Cek apakah ada di kamus secara langsung
-  if (categoryTranslationMap[categoryName]) {
-    return categoryTranslationMap[categoryName];
+function failure(code: string, status: number, language: string) {
+  const messages: Record<string, [string, string]> = {
+    invalid_request: ["Permintaan tidak valid. Periksa teks atau gambar, lalu coba lagi.", "The request is invalid. Check the text or image and try again."],
+    missing_key: ["Penyedia AI belum dikonfigurasi atau kunci API ditolak. Hubungi administrator aplikasi.", "The AI provider is not configured or its API key was rejected. Contact the app administrator."],
+    invalid_provider: ["AI_PROVIDER harus bernilai gemini atau groq.", "AI_PROVIDER must be set to gemini or groq."],
+    rate_limit: ["Batas permintaan tercapai. Tunggu sebentar sebelum mencoba lagi.", "The request limit was reached. Wait a moment before trying again."],
+    timeout: ["Analisis melewati batas waktu. Coba lagi sebentar lagi.", "The analysis timed out. Please try again shortly."],
+    malformed_response: ["Penyedia AI mengembalikan hasil yang tidak dapat dibaca. Coba lagi.", "The AI provider returned an unreadable result. Please try again."],
+    provider_error: ["Penyedia AI sedang tidak tersedia. Coba lagi nanti.", "The AI provider is temporarily unavailable. Please try again later."],
+  }
+  const [id, en] = messages[code] ?? messages.provider_error
+  return NextResponse.json({ success: false, code, error: language === "en" ? en : id }, { status, headers: { "Cache-Control": "no-store, private" } })
+}
+
+export async function POST(request: Request) {
+  const requestedLanguage = request.headers.get("x-language") === "en" ? "en" : "id"
+  const limit = checkRateLimit(`analyze:${clientIpKey(request)}`, 10, 60_000)
+  if (!limit.allowed) {
+    const response = failure("rate_limit", 429, requestedLanguage)
+    response.headers.set("Retry-After", String(limit.retryAfterSeconds))
+    return response
   }
 
-  // Jika tidak ada persis, coba cari kata kuncinya
-  for (const [eng, ind] of Object.entries(categoryTranslationMap)) {
-    if (categoryName.toLowerCase().includes(eng.toLowerCase())) {
-      return ind;
-    }
-  }
-
-  return categoryName; // Kembalikan apa adanya jika tidak ditemukan
-}
-
-type HighlightSegment = { text?: string; reason?: string; risk?: string }
-
-const JSON_STRUCTURE = `{
-  "scam_probability": "e.g. '98%'",
-  "threat_level": "Critical | High | Medium | Low",
-  "scam_category": {
-    "name": "Insert Category Name Here",
-    "confidence": 95
-  },
-  "emotional_metrics": {
-    "fear": 82,
-    "urgency": 91,
-    "trust_abuse": 63,
-    "isolation": 74
-  },
-  "summary": "1-2 sentence summary",
-  "psychology_explanation": "calm, empathetic explanation of how this manipulation works psychologically",
-  "analysis": {
-    "manipulation_tactics": ["string"],
-    "emotional_pressure": ["string"],
-    "urgency_tactics": ["string"],
-    "impersonation_attempts": ["string"],
-    "phishing_indicators": ["string"]
-  },
-  "recommended_actions": ["string"],
-  "highlighted_segments": [
-    {
-      "text": "exact suspicious phrase from conversation",
-      "risk": "low | medium | high | critical",
-      "reason": "short explanation in requested language"
-    }
-  ]
-}`
-
-function buildPrompt(language: string, conversationNote: string): string {
-  // --- LAPIS 1: DYNAMIC LANGUAGE INSTRUCTION SANGAT KETAT ---
-  const languageInstruction = language === "id" 
-    ? `
-CRITICAL LANGUAGE REQUIREMENT:
-Respond FULLY in natural, modern, and premium Indonesian (Bahasa Indonesia). 
-- ABSOLUTELY NO ENGLISH WORDS ALLOWED in the generated content.
-- All scam category names MUST be translated into natural Indonesian. 
-  (Examples: "Romance Scam" -> "Penipuan Romansa", "Impersonation" -> "Penipuan Penyamaran", "Pig Butchering" -> "Manipulasi Investasi Emosional").
-- The summary, psychological explanation, manipulation tactics, and recommendations MUST be 100% in Indonesian.
-- Keep the tone calm, precise, empathetic, and production-ready, like a senior cybersecurity analyst.
-`
-    : `
-CRITICAL LANGUAGE REQUIREMENT:
-Respond FULLY in professional, modern, and premium English.
-- Use concise, premium, analyst-grade language without hype.
-- Keep an intelligent cybersecurity advisory style.
-- Maintain calm, empathetic, and highly analytical explanations.
-`
-
-  return `
-You are TrustLens, a calm cybersecurity analysis system for scam, phishing, impersonation, and emotional-manipulation investigation.
-
-${languageInstruction}
-
-Your job is to analyze a conversation, identify manipulation tactics, and determine the exact scam category in a natural, non-robotic way.
-
-CRITICAL TASKS:
-1. Determine the most likely scam category and your confidence (0-100). (Remember to translate the category name if Indonesian is requested).
-2. Evaluate the emotional manipulation intensity. Give scores from 0-100 for these metrics:
-   - fear (panic or anxiety induction)
-   - urgency (forced quick action)
-   - trust_abuse (exploiting relationship familiarity)
-   - isolation (discouraging verification with others)
-
-Analyze and detect:
-- Scam probability
-- Emotional metrics (0-100 scale)
-- The exact scam category
-- Manipulation and psychological pressure tactics
-- Suspicious phrases for a threat heatmap overlay
-
-For highlighted_segments rules:
-- Extract exact snippets from the conversation text (no paraphrasing).
-- Include up to 10 most relevant snippets.
-- Assign each snippet with risk: low, medium, high, or critical.
-- Use concise reasons in the selected language.
-
-${conversationNote}
-
-Respond ONLY with a valid raw JSON object. No markdown, no explanation, no code blocks.
-Follow this EXACT structure:
-${JSON_STRUCTURE}
-`
-}
-
-export async function POST(req: Request) {
+  let body: unknown
   try {
-    const body = await req.json()
-    const language: string = body.language ?? "id"
-
-    let result
-
-    if (body.image) {
-      const parts: Part[] = [
-        { inlineData: { mimeType: body.mimeType ?? "image/jpeg", data: body.image } },
-        { text: buildPrompt(language, "Analyze the conversation visible in this screenshot image.") },
-      ]
-      result = await model.generateContent(parts)
-    } else {
-      const prompt = buildPrompt(language, `Conversation to analyze:\n${body.text}`)
-      result = await model.generateContent(prompt)
-    }
-
-    const raw = result.response
-      .text()
-      .replace(/```json/g, "")
-      .replace(/```/g, "")
-      .trim()
-
-    const parsedJson = JSON.parse(raw);
-
-    // --- EKSEKUSI LAPIS 2: NORMALISASI KATEGORI ---
-    if (parsedJson.scam_category && parsedJson.scam_category.name) {
-      parsedJson.scam_category.name = normalizeCategory(parsedJson.scam_category.name, language);
-    }
-    
-    if (!Array.isArray(parsedJson.highlighted_segments)) parsedJson.highlighted_segments = [];
-    parsedJson.highlighted_segments = parsedJson.highlighted_segments
-       .filter((segment: HighlightSegment) => segment?.text && segment?.reason)
-      .slice(0, 10)
-      .map((segment: HighlightSegment) => ({
-        text: String(segment.text),
-        reason: String(segment.reason),
-        risk: ["low", "medium", "high", "critical"].includes(String(segment.risk).toLowerCase())
-          ? String(segment.risk).toLowerCase()
-          : "medium",
-      }));
-
-    // Normalisasi threat_level (Optional tapi bagus untuk UX)
-    if (language === "id") {
-       if (parsedJson.threat_level === "Critical") parsedJson.threat_level = "Kritis";
-       if (parsedJson.threat_level === "High") parsedJson.threat_level = "Tinggi";
-       if (parsedJson.threat_level === "Medium") parsedJson.threat_level = "Sedang";
-       if (parsedJson.threat_level === "Low") parsedJson.threat_level = "Rendah";
-    }
-
-    return NextResponse.json({
-      success: true,
-      result: parsedJson,
-    })
+    body = await readJsonBody(request, MAX_BODY_BYTES)
   } catch (error) {
-    console.error("TrustLens analysis failed:", error)
-    return NextResponse.json(
-      { success: false, error: "TrustLens could not complete the analysis. Please try again with clearer evidence or shorter text." },
-      { status: 500 }
-    )
+    if (error instanceof RequestValidationError) return failure("invalid_request", error.status, requestedLanguage)
+    return failure("invalid_request", 400, requestedLanguage)
+  }
+
+  if (!body || typeof body !== "object" || Array.isArray(body)) return failure("invalid_request", 400, requestedLanguage)
+  const payload = body as Record<string, unknown>
+  const language = payload.language === "en" ? "en" : "id"
+  const image = typeof payload.image === "string" ? payload.image : undefined
+  const isImage = image !== undefined
+  const text = typeof payload.text === "string" ? payload.text.trim() : ""
+  if (isImage) {
+    const mimeType = typeof payload.mimeType === "string" ? payload.mimeType.toLowerCase() : "image/jpeg"
+    if (!ALLOWED_IMAGE_TYPES.has(mimeType) || image.length > MAX_IMAGE_BASE64_LENGTH || !/^[A-Za-z0-9+/]+={0,2}$/.test(image) || !matchesImageType(image, mimeType)) {
+      return failure("invalid_request", 400, language)
+    }
+    try {
+      const result = await analyzeWithConfiguredProvider({ language, image, mimeType })
+      return NextResponse.json({ success: true, result: result.result }, { headers: { "Cache-Control": "no-store, private" } })
+    } catch (error) {
+      const code = error instanceof AiProviderError ? error.code : "provider_error"
+      const status = code === "missing_key" ? 503 : code === "invalid_provider" ? 500 : code === "rate_limit" ? 429 : code === "timeout" ? 504 : code === "malformed_response" ? 502 : 502
+      return failure(code, status, language)
+    }
+  }
+  if (!text || text.length > MAX_TEXT_LENGTH) return failure("invalid_request", 400, language)
+  try {
+    const result = await analyzeWithConfiguredProvider({ language, text })
+    return NextResponse.json({ success: true, result: result.result }, { headers: { "Cache-Control": "no-store, private" } })
+  } catch (error) {
+    const code = error instanceof AiProviderError ? error.code : "provider_error"
+    const status = code === "missing_key" ? 503 : code === "invalid_provider" ? 500 : code === "rate_limit" ? 429 : code === "timeout" ? 504 : code === "malformed_response" ? 502 : 502
+    return failure(code, status, language)
   }
 }
