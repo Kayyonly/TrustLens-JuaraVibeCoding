@@ -2,6 +2,7 @@
 "use client"
 
 import React, { useState } from "react"
+import Link from "next/link"
 import Tesseract from "tesseract.js"
 import { motion, AnimatePresence } from "framer-motion"
 import { Upload, FileImage, AlertCircle, ScanSearch, RefreshCw, History } from "lucide-react"
@@ -53,11 +54,21 @@ export default function ScanPage() {
   const [extractedText, setExtractedText] = useState("")
   const [textInput, setTextInput] = useState("")
   const [textValidation, setTextValidation] = useState("")
+  const [analysisError, setAnalysisError] = useState("")
   const [ocrQuality, setOcrQuality] = useState<OcrQuality>(null)
   const [result, setResult] = useState<AnalysisResult | null>(null)
 
   const handleFileSelect = (file: File) => {
-    if (!file || !file.type.startsWith("image/")) return
+    if (!file) return
+    if (!["image/jpeg", "image/png", "image/webp", "image/gif"].includes(file.type)) {
+      setAnalysisError(language === "id" ? "Gunakan gambar JPEG, PNG, WebP, atau GIF." : "Use a JPEG, PNG, WebP, or GIF image.")
+      return
+    }
+    if (file.size > 2_700_000) {
+      setAnalysisError(language === "id" ? "Ukuran gambar maksimal 2,7 MB." : "Image size must be 2.7 MB or less.")
+      return
+    }
+    setAnalysisError("")
     setSelectedFile(file)
     setImagePreview(URL.createObjectURL(file))
     setExtractedText("")
@@ -74,6 +85,7 @@ export default function ScanPage() {
     }
 
     setLoading(true)
+    setAnalysisError("")
     setTextValidation("")
     setSelectedFile(null)
     setImagePreview(null)
@@ -83,10 +95,11 @@ export default function ScanPage() {
     try {
       const response = await fetch("/api/analyze", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "X-Language": language },
         body: JSON.stringify({ text: trimmed, language }),
       })
       const data = await response.json()
+      if (!response.ok || !data.success || !data.result) throw new Error(data.error || (language === "id" ? "Analisis gagal. Coba lagi." : "Analysis failed. Please try again."))
       setResult(data.result)
 
       addScan({
@@ -103,7 +116,7 @@ export default function ScanPage() {
         textPreview: trimmed.slice(0, 140)
       } as any)
     } catch (error) {
-      console.error(error)
+      setAnalysisError(error instanceof Error ? error.message : (language === "id" ? "Analisis gagal. Coba lagi." : "Analysis failed. Please try again."))
     } finally {
       setLoading(false)
     }
@@ -120,6 +133,7 @@ export default function ScanPage() {
   const runAnalysis = async () => {
     if (!selectedFile) return
     setLoading(true)
+    setAnalysisError("")
 
     try {
       const base64 = await new Promise<string>((resolve) => {
@@ -145,11 +159,12 @@ export default function ScanPage() {
 
       const response = await fetch("/api/analyze", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "X-Language": language },
         body: JSON.stringify(body),
       })
 
       const data = await response.json()
+      if (!response.ok || !data.success || !data.result) throw new Error(data.error || (language === "id" ? "Analisis gagal. Coba lagi." : "Analysis failed. Please try again."))
       const analysisData = data.result
       setResult(analysisData)
 
@@ -168,7 +183,7 @@ export default function ScanPage() {
       })
 
     } catch (error) {
-      console.error("Processing Pipeline Error:", error)
+      setAnalysisError(error instanceof Error ? error.message : (language === "id" ? "Analisis gagal. Coba lagi." : "Analysis failed. Please try again."))
     } finally {
       setLoading(false)
     }
@@ -178,7 +193,7 @@ export default function ScanPage() {
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => { e.preventDefault(); setIsDragging(true) }
   const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => { e.preventDefault(); setIsDragging(false) }
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => { e.preventDefault(); setIsDragging(false); const file = e.dataTransfer.files?.[0]; if (file) handleFileSelect(file) }
-  const clearSelection = () => { setSelectedFile(null); setImagePreview(null); setExtractedText(""); setOcrQuality(null); setResult(null); }
+  const clearSelection = () => { setSelectedFile(null); setImagePreview(null); setExtractedText(""); setOcrQuality(null); setResult(null); setAnalysisError(""); }
 
   const runDemoAnalysis = async () => {
     const textToAnalyze = t.demoText
@@ -186,14 +201,16 @@ export default function ScanPage() {
     setOcrQuality("good")
     setExtractedText(textToAnalyze)
     setLoading(true)
+    setAnalysisError("")
 
     try {
       const response = await fetch("/api/analyze", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "X-Language": language },
         body: JSON.stringify({ text: textToAnalyze, language }),
       })
       const data = await response.json()
+      if (!response.ok || !data.success || !data.result) throw new Error(data.error || (language === "id" ? "Analisis demo gagal. Coba lagi." : "Demo analysis failed. Please try again."))
       setResult(data.result)
 
       addScan({
@@ -208,20 +225,21 @@ export default function ScanPage() {
         result: data.result
       })
     } catch (error) {
-      console.error(error)
+      setAnalysisError(error instanceof Error ? error.message : (language === "id" ? "Analisis demo gagal. Coba lagi." : "Demo analysis failed. Please try again."))
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <main className="relative min-h-screen overflow-x-hidden bg-[#0A0A0F] text-white">
+    <main id="main-content" className="relative min-h-screen overflow-x-hidden bg-[#0A0A0F] text-white">
       <BackgroundGlow />
+      <a href="#scan-content" className="sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:not-sr-only focus:rounded-lg focus:bg-white focus:px-4 focus:py-3 focus:text-black">{language === "id" ? "Lewati ke konten utama" : "Skip to main content"}</a>
       <Navbar />
 
       <HistoryDrawer isOpen={isHistoryOpen} onClose={() => setIsHistoryOpen(false)} history={history} onSelect={handleOpenFromHistory} onDelete={deleteScan} onClear={clearHistory} />
 
-      <section className="relative z-10 px-4 sm:px-6 pt-40 pb-24">
+      <section id="scan-content" tabIndex={-1} className="relative z-10 scroll-mt-28 px-4 sm:px-6 pt-40 pb-24 focus-visible:outline-none">
         <div className="max-w-6xl mx-auto">
 
           {/* Header */}
@@ -239,12 +257,17 @@ export default function ScanPage() {
             </p>
           </motion.div>
 
+          <div className="mb-6 space-y-3">
+            <Link href="/tools" className="inline-flex rounded-full border border-white/10 px-4 py-2 text-sm text-white/60 hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70">{language === "id" ? "Buka alat TrustLens" : "Open TrustLens tools"}</Link>
+            <p className="max-w-3xl rounded-2xl border border-white/10 bg-black/25 px-4 py-3 text-xs leading-relaxed text-white/50">{language === "id" ? "Privasi: saat Anda memilih Analisis, teks atau gambar yang dikirim diproses oleh penyedia AI yang dikonfigurasi (Gemini atau Groq). Riwayat hasil disimpan lokal di browser ini. Hindari mengirim data yang tidak ingin diproses pihak tersebut." : "Privacy: when you choose Analyze, submitted text or images are processed by the configured AI provider (Gemini or Groq). Results history is stored locally in this browser. Do not submit data you do not want processed by that provider."}</p>
+          </div>
+
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }} className="mb-6">
             <div className="inline-flex rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-xl p-1 gap-1">
-              <button onClick={() => { setAnalysisMode("screenshot"); setTextValidation("") }} className={`h-10 px-4 rounded-xl text-sm transition-all ${analysisMode === "screenshot" ? "bg-white text-black" : "text-white/70 hover:text-white hover:bg-white/10"}`}>
+              <button type="button" aria-pressed={analysisMode === "screenshot"} onClick={() => { setAnalysisMode("screenshot"); setTextValidation("") }} className={`h-10 px-4 rounded-xl text-sm transition-colors ${analysisMode === "screenshot" ? "bg-white text-black" : "text-white/70 hover:text-white hover:bg-white/10"}`}>
                 {(t as any).analyzerModeScreenshot || "Screenshot Mode"}
               </button>
-              <button onClick={() => { setAnalysisMode("text"); setTextValidation("") }} className={`h-10 px-4 rounded-xl text-sm transition-all ${analysisMode === "text" ? "bg-white text-black" : "text-white/70 hover:text-white hover:bg-white/10"}`}>
+              <button type="button" aria-pressed={analysisMode === "text"} onClick={() => { setAnalysisMode("text"); setTextValidation("") }} className={`h-10 px-4 rounded-xl text-sm transition-colors ${analysisMode === "text" ? "bg-white text-black" : "text-white/70 hover:text-white hover:bg-white/10"}`}>
                 {(t as any).analyzerModeText || "Text Mode"}
               </button>
             </div>
@@ -334,7 +357,7 @@ export default function ScanPage() {
                       </motion.div>
                     )}
                   </AnimatePresence>
-                  <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" id="imageUpload" />
+                  <input type="file" name="screenshot" accept="image/jpeg,image/png,image/webp,image/gif" aria-label={language === "id" ? "Unggah screenshot untuk dianalisis" : "Upload screenshot to analyze"} onChange={handleImageUpload} className="hidden" id="imageUpload" />
                 </div>
 
                 {/* RIGHT: Visual Preview */}
@@ -383,16 +406,22 @@ export default function ScanPage() {
                   <p className="text-white/45 text-base leading-relaxed">{(t as any).textModeDesc || "Paste text directly when you do not have a screenshot."}</p>
                 </div>
                 <div className="rounded-3xl border border-white/10 bg-black/30 p-3 sm:p-4">
+                  <label htmlFor="conversation-text" className="mb-3 block text-sm text-white/70">{language === "id" ? "Teks percakapan mencurigakan" : "Suspicious conversation text"}</label>
                   <textarea
+                    id="conversation-text"
+                    name="conversationText"
+                    autoComplete="off"
+                    maxLength={20_000}
                     value={textInput}
                     onChange={(e) => { setTextInput(e.target.value); if (textValidation) setTextValidation("") }}
                     rows={8}
-                    placeholder={(t as any).textModePlaceholder || "Paste suspicious conversation here..."}
-                    className="w-full resize-y min-h-[180px] max-h-[460px] bg-transparent outline-none text-white/90 placeholder:text-white/35 text-sm sm:text-base leading-relaxed"
+                    placeholder={(t as any).textModePlaceholder || "Paste suspicious conversation here…"}
+                    spellCheck={false}
+                    className="w-full resize-y min-h-[180px] max-h-[460px] bg-transparent text-white/90 placeholder:text-white/35 text-sm sm:text-base leading-relaxed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
                   />
-                  <div className="mt-2 text-right text-xs text-white/35">{textInput.length} chars</div>
+                  <div className="mt-2 text-right text-xs text-white/35">{new Intl.NumberFormat(language === "id" ? "id-ID" : "en-US").format(textInput.length)} / 20,000 {language === "id" ? "karakter" : "characters"}</div>
                 </div>
-                {textValidation && <p className="text-sm text-red-300">{textValidation}</p>}
+                {textValidation && <p role="alert" aria-live="polite" className="text-sm text-red-300">{textValidation}</p>}
                 <button onClick={runTextAnalysis} disabled={loading} className="group h-11 sm:h-12 px-6 sm:px-8 rounded-2xl border border-white/10 bg-white text-black font-semibold text-sm hover:scale-[1.02] hover:bg-white/90 active:scale-95 transition-all shadow-[0_0_20px_rgba(255,255,255,0.15)] disabled:opacity-50">
                   {(t as any).textAnalyzeBtn || "Analyze Text"}
                 </button>
@@ -407,6 +436,8 @@ export default function ScanPage() {
               </motion.div>
             )}
           </AnimatePresence>
+
+          {analysisError && <p role="alert" aria-live="polite" className="mt-4 rounded-2xl border border-red-300/20 bg-red-950/30 px-4 py-3 text-sm text-red-100">{analysisError}</p>}
 
           <AnimatePresence>
             {extractedText && !loading && (

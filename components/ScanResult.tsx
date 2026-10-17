@@ -14,6 +14,8 @@ import EmotionalMeter from "./EmotionalMeter"
 import ThreatRing from "./ThreatRing" // <-- KITA PINDAH THREAT RING KE SINI
 import { useLanguage } from "@/context/LanguageContext"
 import { exportInvestigationPdf } from "@/lib/exportInvestigationPdf"
+import SafeReplyPanel from "@/components/features/SafeReplyPanel"
+import FeedbackWidget from "@/components/features/FeedbackWidget"
 
 type AnalysisResult = {
   scam_probability: string
@@ -292,6 +294,14 @@ export default function ScanResult({ result }: Props) {
             </motion.div>
           ))}
         </div>
+      </motion.div>
+
+      <motion.div variants={itemVariants}>
+        <SafeReplyPanel riskScore={threatScore} language={language} />
+      </motion.div>
+
+      <motion.div variants={itemVariants}>
+        <FeedbackWidget />
       </motion.div>
       
     </motion.div>

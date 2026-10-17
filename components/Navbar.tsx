@@ -1,13 +1,12 @@
 "use client"
 
 import Link from "next/link"
-import { useRouter, usePathname } from "next/navigation"
+import { usePathname } from "next/navigation"
 import { motion } from "framer-motion"
-import { Sparkles, Cpu, Fingerprint, Globe, BookOpen } from "lucide-react"
+import { Sparkles, Cpu, Wrench, Globe, BookOpen } from "lucide-react"
 import { useLanguage } from "@/context/LanguageContext" // <-- IMPORT BARU
 
 export default function Navbar() {
-  const router = useRouter()
   const pathname = usePathname()
   const { language, setLanguage, t } = useLanguage() // <-- PANGGIL KONTEKS
 
@@ -27,7 +26,7 @@ export default function Navbar() {
         <div className="max-w-7xl mx-auto px-4 md:px-6 pt-4 md:pt-6">
           <div className="pointer-events-auto h-14 rounded-2xl border border-white/[0.08] bg-[#050505]/40 backdrop-blur-2xl flex items-center justify-between px-4 md:px-5 shadow-[0_10px_30px_rgba(0,0,0,0.2)]">
 
-            <Link href="/" onClick={handleLogoClick} className="outline-none">
+            <Link href="/" onClick={handleLogoClick} className="rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70">
               <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="flex items-center gap-3 group cursor-pointer">
                 <div className="w-2 h-2 rounded-full bg-white/70 shadow-[0_0_10px_rgba(255,255,255,0.4)] group-hover:bg-white group-hover:shadow-[0_0_15px_rgba(255,255,255,0.9)] transition-all duration-300" />
                 <span className="text-sm text-white/80 font-medium tracking-wide group-hover:text-white transition-colors duration-300">
@@ -40,6 +39,7 @@ export default function Navbar() {
               <Link href="/#features" className="text-sm text-white/40 hover:text-white transition-colors duration-300">{t.navFeatures}</Link>
               <Link href="/#technology" className="text-sm text-white/40 hover:text-white transition-colors duration-300">{t.navTech}</Link>
               <Link href="/learn" className="text-sm text-white/40 hover:text-white transition-colors duration-300">{t.navLearn}</Link>
+              <Link href="/tools" className="text-sm text-white/40 hover:text-white transition-colors duration-300">{t.navTools}</Link>
               <Link href="/#about" className="text-sm text-white/40 hover:text-white transition-colors duration-300">{t.navAbout}</Link>
             </div>
 
@@ -54,12 +54,9 @@ export default function Navbar() {
                 <span className="uppercase">{language}</span>
               </button>
 
-              <button 
-                onClick={() => router.push("/scan")} 
-                className="h-9 md:h-10 px-4 md:px-5 rounded-xl bg-white text-black text-xs md:text-sm font-semibold hover:scale-[1.03] hover:bg-white/90 active:scale-95 transition-all duration-300 shadow-[0_0_15px_rgba(255,255,255,0.1)] hover:shadow-[0_0_25px_rgba(255,255,255,0.2)] pointer-events-auto hidden sm:block"
-              >
+              <Link href="/scan" className="h-9 md:h-10 px-4 md:px-5 rounded-xl bg-white text-black text-xs md:text-sm font-semibold hover:scale-[1.03] hover:bg-white/90 active:scale-95 transition-all duration-300 shadow-[0_0_15px_rgba(255,255,255,0.1)] hover:shadow-[0_0_25px_rgba(255,255,255,0.2)] pointer-events-auto hidden sm:block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70">
                 {t.navScanner}
-              </button>
+              </Link>
             </div>
           </div>
         </div>
@@ -71,7 +68,7 @@ export default function Navbar() {
           <MobileDockItem href="/#features" icon={Sparkles} label={t.navFeatures} />
           <MobileDockItem href="/#technology" icon={Cpu} label={t.navTechMobile} />
           <MobileDockItem href="/learn" icon={BookOpen} label={t.navLearnMobile} />
-          <MobileDockItem href="/#about" icon={Fingerprint} label={t.navAbout} />
+          <MobileDockItem href="/tools" icon={Wrench} label={t.navTools} />
         </motion.div>
       </div>
     </>
@@ -80,10 +77,10 @@ export default function Navbar() {
 
 function MobileDockItem({ href, icon: Icon, label }: { href: string, icon: React.ElementType, label: string }) {
   return (
-    <a href={href} className="relative flex flex-col items-center justify-center w-[64px] sm:w-[72px] h-[56px] rounded-[18px] text-white/40 hover:text-white transition-colors group active:scale-95 duration-200">
+    <Link href={href} className="relative flex flex-col items-center justify-center w-[64px] sm:w-[72px] h-[56px] rounded-[18px] text-white/40 hover:text-white transition-colors group active:scale-95 duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70">
       <div className="absolute inset-0 bg-white/0 group-hover:bg-white/[0.08] rounded-[18px] transition-colors duration-300" />
       <Icon className="w-[18px] h-[18px] mb-1 group-hover:scale-110 transition-transform duration-300" strokeWidth={2} />
       <span className="text-[10px] font-medium tracking-wide">{label}</span>
-    </a>
+    </Link>
   )
 }

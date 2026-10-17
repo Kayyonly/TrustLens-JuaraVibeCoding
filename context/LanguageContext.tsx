@@ -7,7 +7,7 @@ export type Language = "id" | "en"
 
 export const DICTIONARY = {
   id: {
-    navFeatures: "Fitur", navTech: "Teknologi", navAbout: "Tentang Kami", navScanner: "Buka Scanner", navTechMobile: "Teknologi", navLearn: "Dokumen", navLearnMobile: "Belajar",
+    navFeatures: "Fitur", navTech: "Teknologi", navAbout: "Tentang Kami", navScanner: "Buka Scanner", navTechMobile: "Teknologi", navLearn: "Dokumen", navLearnMobile: "Belajar", navTools: "Alat",
     heroBadge: "Intelijen Scam Real-Time", heroTitle: "Lihat manipulasi sebelum berubah menjadi kerugian.", heroDesc: "TrustLens membaca percakapan, tekanan emosional, penyamaran identitas, dan sinyal phishing dengan analisis yang tenang dan mudah dipercaya.", heroScanBtn: "Mulai Analisis", heroDemoBtn: "Lihat Runtime", heroTrust1: "Penalaran real-time", heroTrust2: "Analisis manipulasi",
     featBadge: "Kemampuan Inti", featTitle1: "Dibangun untuk membaca tekanan ", featTitle2: "di balik setiap pesan.", featDesc: "TrustLens memadukan OCR bersih, analisis perilaku, dan klasifikasi risiko untuk mengungkap pola scam modern tanpa membuatnya terasa rumit.",
     featCards: [
@@ -20,14 +20,14 @@ export const DICTIONARY = {
     techBadge: "Arsitektur Analisis", techTitle1: "Pipeline yang membaca ", techTitle2: "konteks, bukan hanya teks.", techDesc: "TrustLens menyatukan OCR, pemahaman bahasa, deteksi tekanan emosional, dan skoring risiko dalam alur yang cepat, jelas, dan siap demo.", techArchitecture: "Pipeline Pemrosesan", techPipeline: ["Input", "OCR", "Normalisasi", "Analisis", "Skoring", "Laporan"],
     techLiveInit: "Membuka sesi analisis percakapan...", techLiveOcr: "Menangkap teks dari bukti visual... [OK]", techLiveSemantic: "Memetakan konteks, maksud, dan tekanan bahasa...", techLiveDetect1: "Sinyal ditemukan: urgensi buatan", techLiveDetect2: "Sinyal ditemukan: eksploitasi kepercayaan", techLiveDetect3: "Sinyal ditemukan: penyamaran identitas", techLiveDone: "Profil risiko siap ditinjau.",
     techCards: [
-      { title: "Penalaran Gemini", desc: "Analisis multimodal untuk konteks, maksud, pola persuasi, dan perubahan narasi." },
+      { title: "Analisis AI Multi-provider", desc: "Analisis multimodal melalui Gemini atau Groq sesuai konfigurasi server." },
       { title: "OCR Intelligence", desc: "Mengekstrak dan menyusun data percakapan dari screenshot, bahkan saat sumbernya kurang rapi." },
       { title: "Deteksi Perilaku", desc: "Mengidentifikasi pola tekanan, penyalahgunaan kepercayaan, dan titik ketika persuasi berubah menjadi paksaan." },
       { title: "Klasifikasi Risiko", desc: "Memberi label jenis scam yang paling mungkin dan menjelaskan bukti di baliknya." },
       { title: "Metrik Emosional", desc: "Mengukur rasa takut, urgensi, isolasi, dan penyalahgunaan kepercayaan dalam bahasa yang mudah dipahami." },
       { title: "Skoring Risiko", desc: "Mengalibrasi probabilitas dan keyakinan dari sinyal perilaku, teks, dan forensik." }
     ],
-    techTrustTitle: "Cepat, privat, dan mudah diaudit.", techTrustDesc: "Analisis risiko real-time tanpa retensi permanen.", techTrustBtn: "Lihat Pipeline",
+    techTrustTitle: "Cepat, transparan, dan mudah ditinjau.", techTrustDesc: "Bukti diproses penyedia AI eksternal yang dipilih; kebijakan penyedia berlaku.", techTrustBtn: "Lihat Pipeline",
     aboutBadge: "Trust Intelligence", aboutTitle1: "TrustLens adalah ", aboutTitle2: "lapisan penilaian sebelum Anda merespons.", aboutDesc: "TrustLens membantu Anda berhenti sejenak, membaca konteks, dan memahami tekanan yang sedang dibangun dalam percakapan—sebelum uang, data, atau kepercayaan berpindah tangan.",
     aboutCards: [
       { title: "Klasifikasi Scam", desc: "Mengidentifikasi pola fraud umum dan baru di skenario investasi, phishing, darurat, dan penyamaran." },
@@ -35,7 +35,7 @@ export const DICTIONARY = {
       { title: "OCR Bersih", desc: "Mengekstrak teks percakapan dari screenshot dan mengubahnya menjadi bukti yang mudah ditinjau." },
       { title: "Panduan Tindakan", desc: "Mengubah sinyal risiko menjadi langkah jelas untuk verifikasi, pemblokiran, pelaporan, dan penyimpanan bukti." }
     ],
-    aboutPrivacyTitle: "Privat sejak awal.", aboutPrivacyDesc: "Percakapan dianalisis saat dibutuhkan. TrustLens tidak menyimpan permanen, melatih model, atau membagikan screenshot dan teks pribadi Anda.", aboutSteps: ["Bukti", "Pembersihan", "Analisis", "Laporan"],
+    aboutPrivacyTitle: "Pemrosesan transparan.", aboutPrivacyDesc: "Teks atau gambar dikirim ke penyedia AI yang dipilih saat Anda memulai analisis. Riwayat tersimpan lokal di browser hingga dihapus; pemrosesan dan retensi penyedia mengikuti kebijakan mereka.", aboutSteps: ["Bukti", "Pembersihan", "Analisis", "Laporan"],
     badge: "TrustLens Scanner", hero: "Analisis percakapan mencurigakan sebelum Anda merespons.", subtitle: "Unggah screenshot dari WhatsApp, Telegram, Instagram, atau SMS. TrustLens membaca manipulasi, penyamaran, tekanan emosional, dan probabilitas scam dalam satu laporan.",
     dropTitle: "Lepaskan bukti di sini", dropSubtitle: "Kami akan menyiapkannya untuk ditinjau.", uploadLabel: "BUKTI PERCAKAPAN", uploadTitle: "Unggah screenshot percakapan.", uploadDesc: "TrustLens meninjau konteks, pola bahasa, penyamaran identitas, tekanan urgensi, dan sinyal phishing tanpa jargon yang mengganggu.", uploadBtn: "Pilih Screenshot", demoBtn: "Jalankan Demo", readyTitle: "Bukti siap dianalisis.", readyDesc: "TrustLens akan mengekstrak teks, merapikan sinyal, dan menyusun profil risiko dari percakapan ini.", analyzeBtn: "Mulai Analisis",
     fakeChatMsg1: "Bro, gw lagi di rumah sakit. Bisa transfer sekarang?", fakeChatMsg2: "Tolong jangan kasih tau siapa-siapa dulu ya. Ini darurat banget.", aiDetection: "PENILAIAN RISIKO", live: "Live", scamProb: "Probabilitas Scam", ocrWarning: "Teks pada gambar kurang jelas. Gunakan screenshot yang lebih tajam untuk hasil terbaik.",
@@ -61,7 +61,7 @@ export const DICTIONARY = {
     textModeBadge: "ANALISIS TEKS",
   },
   en: {
-    navFeatures: "Features", navTech: "Technology", navAbout: "About", navScanner: "Open Scanner", navTechMobile: "Tech", navLearn: "Docs", navLearnMobile: "Learn",
+    navFeatures: "Features", navTech: "Technology", navAbout: "About", navScanner: "Open Scanner", navTechMobile: "Tech", navLearn: "Docs", navLearnMobile: "Learn", navTools: "Tools",
     heroBadge: "Real-time Scam Intelligence", heroTitle: "See the manipulation before it costs you.", heroDesc: "TrustLens reviews conversations for emotional pressure, impersonation, phishing signals, and behavioral red flags—clear enough to act on, calm enough to trust.", heroScanBtn: "Start Analysis", heroDemoBtn: "View Runtime", heroTrust1: "Real-time reasoning", heroTrust2: "Manipulation analysis",
     featBadge: "Core Capabilities", featTitle1: "Built to read the pressure ", featTitle2: "behind every message.", featDesc: "TrustLens combines clean OCR, behavioral analysis, and risk classification to surface modern scam patterns without making the experience feel technical.",
     featCards: [
@@ -74,14 +74,14 @@ export const DICTIONARY = {
     techBadge: "Analysis Architecture", techTitle1: "A pipeline that reads ", techTitle2: "context, not just text.", techDesc: "TrustLens brings OCR, language understanding, emotional-pressure detection, and risk scoring into one fast, legible workflow built for investigation.", techArchitecture: "Processing Pipeline", techPipeline: ["Input", "OCR", "Normalize", "Analyze", "Score", "Report"],
     techLiveInit: "Opening secure analysis session...", techLiveOcr: "Capturing text from visual evidence... [OK]", techLiveSemantic: "Mapping context, intent, and pressure cues...", techLiveDetect1: "Signal found: manufactured urgency", techLiveDetect2: "Signal found: trust exploitation", techLiveDetect3: "Signal found: identity mismatch", techLiveDone: "Risk profile ready for review.",
     techCards: [
-      { title: "Gemini Reasoning", desc: "Multimodal analysis for context, intent, persuasion patterns, and narrative shifts." },
+      { title: "Multi-provider AI", desc: "Multimodal analysis through Gemini or Groq, according to server configuration." },
       { title: "OCR Intelligence", desc: "Extracts and structures raw conversation data from screenshots, even when the source is noisy." },
       { title: "Behavioral Detection", desc: "Identifies pressure patterns, trust abuse, and the moments where persuasion becomes coercive." },
       { title: "Risk Classification", desc: "Labels likely scam types and explains the evidence behind each classification." },
       { title: "Emotional Metrics", desc: "Measures fear, urgency, isolation, and trust abuse in language users can understand." },
       { title: "Risk Scoring", desc: "Calibrates probability and confidence from behavioral, textual, and forensic signals." }
     ],
-    techTrustTitle: "Fast, private, and built for review.", techTrustDesc: "Real-time risk analysis with no permanent data retention.", techTrustBtn: "View Pipeline",
+    techTrustTitle: "Fast, transparent, and built for review.", techTrustDesc: "Evidence is processed by the selected external AI provider; that provider’s policies apply.", techTrustBtn: "View Pipeline",
     aboutBadge: "Trust Intelligence", aboutTitle1: "TrustLens is a ", aboutTitle2: "decision layer before you respond.", aboutDesc: "TrustLens helps you pause, read the context, and understand the pressure being applied in a conversation—before money, data, or trust changes hands.",
     aboutCards: [
       { title: "Scam Classification", desc: "Identifies common and emerging fraud patterns across investment, phishing, emergency, and impersonation scenarios." },
@@ -89,7 +89,7 @@ export const DICTIONARY = {
       { title: "Clean OCR", desc: "Extracts conversation text from screenshots and turns it into readable evidence for review." },
       { title: "Actionable Guidance", desc: "Turns detected signals into plain-language next steps for verification, blocking, reporting, and evidence preservation." }
     ],
-    aboutPrivacyTitle: "Private by design.", aboutPrivacyDesc: "Conversations are analyzed only when needed. TrustLens does not permanently store, train on, or share your private screenshots or text.", aboutSteps: ["Evidence", "Cleanup", "Analysis", "Report"],
+    aboutPrivacyTitle: "Transparent processing.", aboutPrivacyDesc: "Text or images are sent to the selected AI provider when you start an analysis. History stays in this browser until deleted; provider processing and retention follow its policies.", aboutSteps: ["Evidence", "Cleanup", "Analysis", "Report"],
     badge: "TrustLens Scanner", hero: "Analyze suspicious conversations before you respond.", subtitle: "Upload a screenshot from WhatsApp, Telegram, Instagram, or SMS. TrustLens reads manipulation, impersonation, emotional pressure, and scam probability in one clear report.",
     dropTitle: "Drop evidence here", dropSubtitle: "We’ll prepare it for review.", uploadLabel: "CONVERSATION EVIDENCE", uploadTitle: "Upload a conversation screenshot.", uploadDesc: "TrustLens reviews context, language patterns, impersonation cues, urgency pressure, and phishing signals—without the noise.", uploadBtn: "Select Screenshot", demoBtn: "Run Demo", readyTitle: "Evidence ready for analysis.", readyDesc: "TrustLens will extract the text, normalize the signal, and build a risk profile from this conversation.", analyzeBtn: "Start Analysis",
     fakeChatMsg1: "Bro, I'm in the hospital right now. Can you transfer money?", fakeChatMsg2: "Please don't tell anyone yet. It's really urgent.", aiDetection: "RISK ASSESSMENT", live: "Live", scamProb: "Scam Probability", ocrWarning: "Image text is hard to read. Use a sharper screenshot for the best result.",
@@ -109,7 +109,7 @@ export const DICTIONARY = {
     analyzerModeText: "Text",
     textModeTitle: "Paste a conversation for analysis.",
     textModeDesc: "Use direct text when you do not have a screenshot.",
-    textModePlaceholder: "Paste suspicious messages, links, or conversation text...",
+    textModePlaceholder: "Paste suspicious messages, links, or conversation text…",
     textAnalyzeBtn: "Analyze Text",
     textValidation: "Add conversation text before analyzing.",
     textModeBadge: "TEXT ANALYSIS",
@@ -124,10 +124,12 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const saved = localStorage.getItem("trustlens-lang") as Language
     if (saved === "id" || saved === "en") {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLanguageState(saved)
     }
   }, [])
+  useEffect(() => {
+    document.documentElement.lang = language
+  }, [language])
   const setLanguage = (lang: Language) => {
     setLanguageState(lang)
     localStorage.setItem("trustlens-lang", lang)
