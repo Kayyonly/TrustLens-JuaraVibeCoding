@@ -4,6 +4,10 @@ import { NextResponse } from "next/server"
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY!)
 const model = genAI.getGenerativeModel({ model: "gemini-3.1-flash-lite" })
 
+const MAX_TEXT_LENGTH = 50_000
+const MAX_IMAGE_BASE64_LENGTH = 12_000_000
+const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"])
+
 // --- LAPIS 2: KAMUS DARURAT (NORMALIZATION MAP) ---
 // Jika Gemini masih membandel memberikan kategori bahasa Inggris saat mode 'id', ini akan menimpanya.
 const categoryTranslationMap: Record<string, string> = {
@@ -142,11 +146,37 @@ export async function POST(req: Request) {
     const body = await req.json()
     const language: string = body.language ?? "id"
 
+    if (body.image !== undefined) {
+      if (typeof body.image !== "string" || body.image.length === 0 || body.image.length > MAX_IMAGE_BASE64_LENGTH) {
+        return NextResponse.json(
+          { success: false, error: "The uploaded image is missing or too large. Please use a smaller image." },
+          { status: 400 },
+        )
+      }
+
+      if (!ALLOWED_IMAGE_TYPES.has(body.mimeType)) {
+        return NextResponse.json(
+          { success: false, error: "Unsupported image type. Please upload a PNG, JPG, or WEBP image." },
+          { status: 400 },
+        )
+      }
+    } else if (typeof body.text !== "string" || body.text.trim().length === 0) {
+      return NextResponse.json(
+        { success: false, error: "Conversation text cannot be empty." },
+        { status: 400 },
+      )
+    } else if (body.text.length > MAX_TEXT_LENGTH) {
+      return NextResponse.json(
+        { success: false, error: "Conversation text is too long. Please submit 50,000 characters or fewer." },
+        { status: 400 },
+      )
+    }
+
     let result
 
     if (body.image) {
       const parts: Part[] = [
-        { inlineData: { mimeType: body.mimeType ?? "image/jpeg", data: body.image } },
+        { inlineData: { mimeType: body.mimeType, data: body.image } },
         { text: buildPrompt(language, "Analyze the conversation visible in this screenshot image.") },
       ]
       result = await model.generateContent(parts)
