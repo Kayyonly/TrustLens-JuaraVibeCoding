@@ -1,7 +1,7 @@
 /* eslint-disable */
 "use client"
 
-import React, { useState } from "react"
+import React, { useEffect, useState } from "react"
 import Tesseract from "tesseract.js"
 import { motion, AnimatePresence } from "framer-motion"
 import { Upload, FileImage, AlertCircle, ScanSearch, RefreshCw, History } from "lucide-react"
@@ -56,8 +56,17 @@ export default function ScanPage() {
   const [ocrQuality, setOcrQuality] = useState<OcrQuality>(null)
   const [result, setResult] = useState<AnalysisResult | null>(null)
 
+  const revokePreviewUrl = (url: string | null) => {
+    if (url?.startsWith("blob:")) URL.revokeObjectURL(url)
+  }
+
+  useEffect(() => {
+    return () => revokePreviewUrl(imagePreview)
+  }, [imagePreview])
+
   const handleFileSelect = (file: File) => {
     if (!file || !file.type.startsWith("image/")) return
+    revokePreviewUrl(imagePreview)
     setSelectedFile(file)
     setImagePreview(URL.createObjectURL(file))
     setExtractedText("")
@@ -110,6 +119,7 @@ export default function ScanPage() {
   }
 
   const handleOpenFromHistory = (item: HistoryItem) => {
+    revokePreviewUrl(imagePreview)
     setSelectedFile(null)
     setImagePreview(item.thumbnail)
     setExtractedText(t.historyAnalysis)
@@ -178,7 +188,7 @@ export default function ScanPage() {
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => { e.preventDefault(); setIsDragging(true) }
   const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => { e.preventDefault(); setIsDragging(false) }
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => { e.preventDefault(); setIsDragging(false); const file = e.dataTransfer.files?.[0]; if (file) handleFileSelect(file) }
-  const clearSelection = () => { setSelectedFile(null); setImagePreview(null); setExtractedText(""); setOcrQuality(null); setResult(null); }
+  const clearSelection = () => { revokePreviewUrl(imagePreview); setSelectedFile(null); setImagePreview(null); setExtractedText(""); setOcrQuality(null); setResult(null); }
 
   const runDemoAnalysis = async () => {
     const textToAnalyze = t.demoText
