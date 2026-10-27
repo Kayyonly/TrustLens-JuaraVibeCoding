@@ -4,6 +4,9 @@ import { NextResponse } from "next/server"
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY!)
 const model = genAI.getGenerativeModel({ model: "gemini-3.1-flash-lite" })
 
+const MAX_TEXT_LENGTH = 20_000
+const MAX_IMAGE_BASE64_LENGTH = 12_000_000
+
 // --- LAPIS 2: KAMUS DARURAT (NORMALIZATION MAP) ---
 // Jika Gemini masih membandel memberikan kategori bahasa Inggris saat mode 'id', ini akan menimpanya.
 const categoryTranslationMap: Record<string, string> = {
@@ -140,7 +143,31 @@ ${JSON_STRUCTURE}
 export async function POST(req: Request) {
   try {
     const body = await req.json()
+    if (!body || typeof body !== "object") {
+      return NextResponse.json({ success: false, error: "Invalid analysis request." }, { status: 400 })
+    }
+
     const language: string = body.language ?? "id"
+    if (language !== "id" && language !== "en") {
+      return NextResponse.json({ success: false, error: "Unsupported analysis language." }, { status: 400 })
+    }
+
+    const hasImage = typeof body.image === "string" && body.image.length > 0
+    const hasText = typeof body.text === "string" && body.text.trim().length > 0
+
+    if (hasImage === hasText) {
+      return NextResponse.json({ success: false, error: "Provide either conversation text or an image." }, { status: 400 })
+    }
+
+    if (hasText && body.text.trim().length > MAX_TEXT_LENGTH) {
+      return NextResponse.json({ success: false, error: "Conversation text is too long to analyze." }, { status: 413 })
+    }
+
+    if (hasImage) {
+      if (!body.mimeType?.startsWith("image/") || body.image.length > MAX_IMAGE_BASE64_LENGTH) {
+        return NextResponse.json({ success: false, error: "Image payload is invalid or too large." }, { status: 413 })
+      }
+    }
 
     let result
 
