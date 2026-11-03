@@ -4,6 +4,11 @@ import { NextResponse } from "next/server"
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY!)
 const model = genAI.getGenerativeModel({ model: "gemini-3.1-flash-lite" })
 
+const MAX_TEXT_LENGTH = 20_000
+const MAX_IMAGE_BASE64_LENGTH = 8_000_000
+const SUPPORTED_LANGUAGES = new Set(["id", "en"])
+const SUPPORTED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"])
+
 // --- LAPIS 2: KAMUS DARURAT (NORMALIZATION MAP) ---
 // Jika Gemini masih membandel memberikan kategori bahasa Inggris saat mode 'id', ini akan menimpanya.
 const categoryTranslationMap: Record<string, string> = {
@@ -139,8 +144,72 @@ ${JSON_STRUCTURE}
 
 export async function POST(req: Request) {
   try {
+    const contentLength = Number(req.headers.get("content-length"))
+    if (Number.isFinite(contentLength) && contentLength > 10_000_000) {
+      return NextResponse.json(
+        { success: false, error: "Request payload is too large." },
+        { status: 413 },
+      )
+    }
+
     const body = await req.json()
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
+      return NextResponse.json(
+        { success: false, error: "Request body must be a JSON object." },
+        { status: 400 },
+      )
+    }
     const language: string = body.language ?? "id"
+    const hasText = typeof body.text === "string"
+    const hasImage = typeof body.image === "string"
+
+    if (!SUPPORTED_LANGUAGES.has(language)) {
+      return NextResponse.json(
+        { success: false, error: "Unsupported analysis language." },
+        { status: 400 },
+      )
+    }
+
+    if (hasText === hasImage) {
+      return NextResponse.json(
+        { success: false, error: "Provide exactly one text or image input." },
+        { status: 400 },
+      )
+    }
+
+    if (hasText) {
+      if (!body.text.trim()) {
+        return NextResponse.json(
+          { success: false, error: "Conversation text cannot be empty." },
+          { status: 400 },
+        )
+      }
+      if (body.text.length > MAX_TEXT_LENGTH) {
+        return NextResponse.json(
+          { success: false, error: "Conversation text is too long." },
+          { status: 413 },
+        )
+      }
+    }
+
+    if (hasImage) {
+      if (!SUPPORTED_IMAGE_TYPES.has(body.mimeType)) {
+        return NextResponse.json(
+          { success: false, error: "Unsupported image type." },
+          { status: 400 },
+        )
+      }
+      if (
+        body.image.length === 0 ||
+        body.image.length > MAX_IMAGE_BASE64_LENGTH ||
+        !/^[A-Za-z0-9+/]+={0,2}$/.test(body.image)
+      ) {
+        return NextResponse.json(
+          { success: false, error: "Invalid or oversized image payload." },
+          { status: 413 },
+        )
+      }
+    }
 
     let result
 
@@ -151,7 +220,7 @@ export async function POST(req: Request) {
       ]
       result = await model.generateContent(parts)
     } else {
-      const prompt = buildPrompt(language, `Conversation to analyze:\n${body.text}`)
+      const prompt = buildPrompt(language, `Conversation to analyze:\n${body.text.trim()}`)
       result = await model.generateContent(prompt)
     }
 
