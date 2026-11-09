@@ -3,6 +3,10 @@ import { NextResponse } from "next/server"
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY!)
 const model = genAI.getGenerativeModel({ model: "gemini-3.1-flash-lite" })
+const MAX_REQUEST_BYTES = 12 * 1024 * 1024
+const MAX_TEXT_LENGTH = 20_000
+const MAX_IMAGE_BASE64_LENGTH = 10 * 1024 * 1024
+const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"])
 
 // --- LAPIS 2: KAMUS DARURAT (NORMALIZATION MAP) ---
 // Jika Gemini masih membandel memberikan kategori bahasa Inggris saat mode 'id', ini akan menimpanya.
@@ -139,14 +143,61 @@ ${JSON_STRUCTURE}
 
 export async function POST(req: Request) {
   try {
+    const contentLength = Number(req.headers.get("content-length") ?? 0)
+    if (Number.isFinite(contentLength) && contentLength > MAX_REQUEST_BYTES) {
+      return NextResponse.json(
+        { success: false, error: "The submitted evidence is too large. Please use a smaller image or shorter text." },
+        { status: 413 },
+      )
+    }
+
     const body = await req.json()
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
+      return NextResponse.json({ success: false, error: "Invalid request body." }, { status: 400 })
+    }
+
     const language: string = body.language ?? "id"
+    if (language !== "id" && language !== "en") {
+      return NextResponse.json({ success: false, error: "Unsupported analysis language." }, { status: 400 })
+    }
+
+    const hasImage = typeof body.image === "string" && body.image.length > 0
+    const hasText = typeof body.text === "string" && body.text.trim().length > 0
+    if (hasImage === hasText) {
+      return NextResponse.json(
+        { success: false, error: "Provide exactly one non-empty text or image input." },
+        { status: 400 },
+      )
+    }
+
+    if (hasText && body.text.length > MAX_TEXT_LENGTH) {
+      return NextResponse.json(
+        { success: false, error: `Text input must be ${MAX_TEXT_LENGTH.toLocaleString()} characters or fewer.` },
+        { status: 413 },
+      )
+    }
+
+    let mimeType = "image/jpeg"
+    if (hasImage) {
+      mimeType = body.mimeType ?? mimeType
+      if (
+        typeof mimeType !== "string" ||
+        !ALLOWED_IMAGE_TYPES.has(mimeType) ||
+        body.image.length > MAX_IMAGE_BASE64_LENGTH ||
+        !/^[A-Za-z0-9+/]+={0,2}$/.test(body.image)
+      ) {
+        return NextResponse.json(
+          { success: false, error: "Unsupported or oversized image input." },
+          { status: 400 },
+        )
+      }
+    }
 
     let result
 
-    if (body.image) {
+    if (hasImage) {
       const parts: Part[] = [
-        { inlineData: { mimeType: body.mimeType ?? "image/jpeg", data: body.image } },
+        { inlineData: { mimeType, data: body.image } },
         { text: buildPrompt(language, "Analyze the conversation visible in this screenshot image.") },
       ]
       result = await model.generateContent(parts)
