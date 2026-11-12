@@ -4,6 +4,11 @@ import { NextResponse } from "next/server"
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY!)
 const model = genAI.getGenerativeModel({ model: "gemini-3.1-flash-lite" })
 
+const MAX_REQUEST_BYTES = 12 * 1024 * 1024
+const MAX_TEXT_CHARS = 12_000
+const MAX_IMAGE_BASE64_CHARS = 10 * 1024 * 1024
+const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"])
+
 // --- LAPIS 2: KAMUS DARURAT (NORMALIZATION MAP) ---
 // Jika Gemini masih membandel memberikan kategori bahasa Inggris saat mode 'id', ini akan menimpanya.
 const categoryTranslationMap: Record<string, string> = {
@@ -139,12 +144,49 @@ ${JSON_STRUCTURE}
 
 export async function POST(req: Request) {
   try {
+    const contentLength = Number(req.headers.get("content-length"))
+    if (Number.isFinite(contentLength) && contentLength > MAX_REQUEST_BYTES) {
+      return NextResponse.json(
+        { success: false, error: "The submitted evidence is too large. Please use a shorter text or smaller image." },
+        { status: 413 },
+      )
+    }
+
     const body = await req.json()
-    const language: string = body.language ?? "id"
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
+      return NextResponse.json({ success: false, error: "Invalid analysis request." }, { status: 400 })
+    }
+
+    const language = body.language ?? "id"
+    if (language !== "id" && language !== "en") {
+      return NextResponse.json({ success: false, error: "Unsupported analysis language." }, { status: 400 })
+    }
+
+    const hasText = typeof body.text === "string" && body.text.trim().length > 0
+    const hasImage = typeof body.image === "string" && body.image.length > 0
+    if (hasText === hasImage) {
+      return NextResponse.json({ success: false, error: "Provide exactly one text or image evidence input." }, { status: 400 })
+    }
+
+    if (hasText && body.text.length > MAX_TEXT_CHARS) {
+      return NextResponse.json(
+        { success: false, error: `Text evidence must be ${MAX_TEXT_CHARS.toLocaleString()} characters or fewer.` },
+        { status: 413 },
+      )
+    }
+
+    if (hasImage) {
+      if (!ALLOWED_IMAGE_TYPES.has(body.mimeType)) {
+        return NextResponse.json({ success: false, error: "Only JPEG, PNG, and WebP images are supported." }, { status: 400 })
+      }
+      if (body.image.length > MAX_IMAGE_BASE64_CHARS || !/^[A-Za-z0-9+/]+={0,2}$/.test(body.image)) {
+        return NextResponse.json({ success: false, error: "Invalid or oversized image evidence." }, { status: 400 })
+      }
+    }
 
     let result
 
-    if (body.image) {
+    if (hasImage) {
       const parts: Part[] = [
         { inlineData: { mimeType: body.mimeType ?? "image/jpeg", data: body.image } },
         { text: buildPrompt(language, "Analyze the conversation visible in this screenshot image.") },
