@@ -49,6 +49,56 @@ function normalizeCategory(categoryName: string, lang: string): string {
 
 type HighlightSegment = { text?: string; reason?: string; risk?: string }
 
+const MAX_TEXT_LENGTH = 20_000
+const MAX_IMAGE_BYTES = 8 * 1024 * 1024
+const ALLOWED_LANGUAGES = new Set(["id", "en"])
+const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"])
+
+function invalidRequest(message: string) {
+  return NextResponse.json({ success: false, error: message }, { status: 400 })
+}
+
+function validateRequestBody(body: unknown):
+  | { ok: true; language: "id" | "en"; text?: string; image?: string; mimeType?: string }
+  | { ok: false; response: NextResponse } {
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    return { ok: false, response: invalidRequest("Invalid analysis request.") }
+  }
+
+  const request = body as Record<string, unknown>
+  const language = request.language ?? "id"
+  if (typeof language !== "string" || !ALLOWED_LANGUAGES.has(language)) {
+    return { ok: false, response: invalidRequest("Unsupported analysis language.") }
+  }
+
+  const hasText = typeof request.text === "string" && request.text.trim().length > 0
+  const hasImage = typeof request.image === "string" && request.image.length > 0
+  if (hasText === hasImage) {
+    return { ok: false, response: invalidRequest("Provide exactly one text or image input.") }
+  }
+
+  if (hasText) {
+    const text = (request.text as string).trim()
+    if (text.length > MAX_TEXT_LENGTH) {
+      return { ok: false, response: invalidRequest(`Text input must be ${MAX_TEXT_LENGTH} characters or fewer.`) }
+    }
+    return { ok: true, language: language as "id" | "en", text }
+  }
+
+  const image = request.image as string
+  const mimeType = request.mimeType
+  if (typeof mimeType !== "string" || !ALLOWED_IMAGE_TYPES.has(mimeType)) {
+    return { ok: false, response: invalidRequest("Unsupported image type.") }
+  }
+
+  const maxBase64Length = Math.ceil(MAX_IMAGE_BYTES / 3) * 4
+  if (image.length > maxBase64Length || !/^[A-Za-z0-9+/]*={0,2}$/.test(image)) {
+    return { ok: false, response: invalidRequest("Image input is invalid or too large.") }
+  }
+
+  return { ok: true, language: language as "id" | "en", image, mimeType }
+}
+
 const JSON_STRUCTURE = `{
   "scam_probability": "e.g. '98%'",
   "threat_level": "Critical | High | Medium | Low",
@@ -140,18 +190,21 @@ ${JSON_STRUCTURE}
 export async function POST(req: Request) {
   try {
     const body = await req.json()
-    const language: string = body.language ?? "id"
+    const validated = validateRequestBody(body)
+    if (!validated.ok) return validated.response
+
+    const { language } = validated
 
     let result
 
-    if (body.image) {
+    if (validated.image) {
       const parts: Part[] = [
-        { inlineData: { mimeType: body.mimeType ?? "image/jpeg", data: body.image } },
+        { inlineData: { mimeType: validated.mimeType!, data: validated.image } },
         { text: buildPrompt(language, "Analyze the conversation visible in this screenshot image.") },
       ]
       result = await model.generateContent(parts)
     } else {
-      const prompt = buildPrompt(language, `Conversation to analyze:\n${body.text}`)
+      const prompt = buildPrompt(language, `Conversation to analyze:\n${validated.text}`)
       result = await model.generateContent(prompt)
     }
 
