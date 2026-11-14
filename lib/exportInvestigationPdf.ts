@@ -46,6 +46,7 @@ export async function exportInvestigationPdf(result: AnalysisResult, labels: Pdf
 
   const win = window.open("", "_blank", "width=900,height=1200")
   if (!win) throw new Error("The PDF window was blocked by the browser.")
+  win.opener = null
 
   const segs = (result.highlighted_segments || []).map((s, i) => `<li><strong>[${escapeHtml(s.risk.toUpperCase())}]</strong> ${i + 1}. ${escapeHtml(s.text)}<br/><span>${escapeHtml(s.reason)}</span></li>`).join("")
   const recs = result.recommended_actions.map((r, i) => `<li>${i + 1}. ${escapeHtml(r)}</li>`).join("")
