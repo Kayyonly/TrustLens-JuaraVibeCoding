@@ -4,6 +4,11 @@ import { NextResponse } from "next/server"
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY!)
 const model = genAI.getGenerativeModel({ model: "gemini-3.1-flash-lite" })
 
+const MAX_TEXT_LENGTH = 100_000
+const MAX_IMAGE_DATA_LENGTH = 8 * 1024 * 1024
+const SUPPORTED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"])
+const SUPPORTED_LANGUAGES = new Set(["id", "en"])
+
 // --- LAPIS 2: KAMUS DARURAT (NORMALIZATION MAP) ---
 // Jika Gemini masih membandel memberikan kategori bahasa Inggris saat mode 'id', ini akan menimpanya.
 const categoryTranslationMap: Record<string, string> = {
@@ -140,7 +145,33 @@ ${JSON_STRUCTURE}
 export async function POST(req: Request) {
   try {
     const body = await req.json()
+
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
+      return NextResponse.json({ success: false, error: "Invalid request body." }, { status: 400 })
+    }
+
     const language: string = body.language ?? "id"
+
+    if (!SUPPORTED_LANGUAGES.has(language)) {
+      return NextResponse.json({ success: false, error: "Unsupported language." }, { status: 400 })
+    }
+
+    if (body.image !== undefined) {
+      if (
+        typeof body.image !== "string" ||
+        !SUPPORTED_IMAGE_TYPES.has(body.mimeType) ||
+        body.image.length === 0 ||
+        body.image.length > MAX_IMAGE_DATA_LENGTH
+      ) {
+        return NextResponse.json({ success: false, error: "Invalid or oversized image input." }, { status: 400 })
+      }
+    } else if (
+      typeof body.text !== "string" ||
+      body.text.trim().length === 0 ||
+      body.text.length > MAX_TEXT_LENGTH
+    ) {
+      return NextResponse.json({ success: false, error: "Text input is empty or too long." }, { status: 400 })
+    }
 
     let result
 
