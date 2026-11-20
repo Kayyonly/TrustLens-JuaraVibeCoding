@@ -49,6 +49,15 @@ function normalizeCategory(categoryName: string, lang: string): string {
 
 type HighlightSegment = { text?: string; reason?: string; risk?: string }
 
+const MAX_TEXT_LENGTH = 20_000
+const MAX_IMAGE_BYTES = 8 * 1024 * 1024
+const ALLOWED_IMAGE_MIME_TYPES = new Set(["image/jpeg", "image/png", "image/webp"])
+
+function getBase64ByteLength(value: string): number {
+  const padding = value.endsWith("==") ? 2 : value.endsWith("=") ? 1 : 0
+  return Math.floor((value.length * 3) / 4) - padding
+}
+
 const JSON_STRUCTURE = `{
   "scam_probability": "e.g. '98%'",
   "threat_level": "Critical | High | Medium | Low",
@@ -140,7 +149,35 @@ ${JSON_STRUCTURE}
 export async function POST(req: Request) {
   try {
     const body = await req.json()
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
+      return NextResponse.json({ success: false, error: "Invalid request body." }, { status: 400 })
+    }
+
     const language: string = body.language ?? "id"
+    if (language !== "id" && language !== "en") {
+      return NextResponse.json({ success: false, error: "Unsupported language." }, { status: 400 })
+    }
+
+    const hasImage = typeof body.image === "string" && body.image.length > 0
+    const hasText = typeof body.text === "string" && body.text.trim().length > 0
+
+    if (hasImage === hasText) {
+      return NextResponse.json({ success: false, error: "Provide exactly one text or image input." }, { status: 400 })
+    }
+
+    if (hasText && body.text.length > MAX_TEXT_LENGTH) {
+      return NextResponse.json({ success: false, error: `Text input must be ${MAX_TEXT_LENGTH} characters or fewer.` }, { status: 413 })
+    }
+
+    if (hasImage) {
+      const mimeType = body.mimeType ?? "image/jpeg"
+      if (!ALLOWED_IMAGE_MIME_TYPES.has(mimeType)) {
+        return NextResponse.json({ success: false, error: "Only JPEG, PNG, and WEBP images are supported." }, { status: 415 })
+      }
+      if (!/^[A-Za-z0-9+/]*={0,2}$/.test(body.image) || getBase64ByteLength(body.image) > MAX_IMAGE_BYTES) {
+        return NextResponse.json({ success: false, error: "Image input is invalid or exceeds the 8 MB limit." }, { status: 413 })
+      }
+    }
 
     let result
 
@@ -151,7 +188,7 @@ export async function POST(req: Request) {
       ]
       result = await model.generateContent(parts)
     } else {
-      const prompt = buildPrompt(language, `Conversation to analyze:\n${body.text}`)
+      const prompt = buildPrompt(language, `Conversation to analyze:\n${body.text.trim()}`)
       result = await model.generateContent(prompt)
     }
 
