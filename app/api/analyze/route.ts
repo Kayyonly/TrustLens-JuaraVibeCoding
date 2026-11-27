@@ -134,19 +134,56 @@ ${conversationNote}
 Respond ONLY with a valid raw JSON object. No markdown, no explanation, no code blocks.
 Follow this EXACT structure:
 ${JSON_STRUCTURE}
-`
+  `
+}
+
+const MAX_TEXT_LENGTH = 20_000
+const MAX_IMAGE_BASE64_LENGTH = 7_000_000
+const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"])
+
+function invalidRequest(message: string) {
+  return NextResponse.json({ success: false, error: message }, { status: 400 })
 }
 
 export async function POST(req: Request) {
   try {
+    const contentLength = Number(req.headers.get("content-length") ?? 0)
+    if (contentLength > 8_000_000) {
+      return invalidRequest("The submitted evidence is too large. Please use a smaller image or shorter text.")
+    }
+
     const body = await req.json()
-    const language: string = body.language ?? "id"
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
+      return invalidRequest("The request body must be a JSON object.")
+    }
+
+    const language = body.language ?? "id"
+    if (language !== "id" && language !== "en") {
+      return invalidRequest("Unsupported analysis language.")
+    }
+
+    const hasText = typeof body.text === "string" && body.text.trim().length > 0
+    const hasImage = typeof body.image === "string" && body.image.length > 0
+    if (!hasText && !hasImage) {
+      return invalidRequest("Provide conversation text or an image to analyze.")
+    }
+    if (hasText && body.text.length > MAX_TEXT_LENGTH) {
+      return invalidRequest("The conversation is too long. Please submit at most 20,000 characters.")
+    }
+    if (hasImage) {
+      if (!ALLOWED_IMAGE_TYPES.has(body.mimeType)) {
+        return invalidRequest("Unsupported image type. Use JPEG, PNG, or WebP.")
+      }
+      if (body.image.length > MAX_IMAGE_BASE64_LENGTH) {
+        return invalidRequest("The image is too large. Please use an image smaller than 5 MB.")
+      }
+    }
 
     let result
 
-    if (body.image) {
+    if (hasImage) {
       const parts: Part[] = [
-        { inlineData: { mimeType: body.mimeType ?? "image/jpeg", data: body.image } },
+        { inlineData: { mimeType: body.mimeType, data: body.image } },
         { text: buildPrompt(language, "Analyze the conversation visible in this screenshot image.") },
       ]
       result = await model.generateContent(parts)
