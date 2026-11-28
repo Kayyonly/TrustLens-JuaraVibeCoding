@@ -4,6 +4,11 @@ import { NextResponse } from "next/server"
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY!)
 const model = genAI.getGenerativeModel({ model: "gemini-3.1-flash-lite" })
 
+// Keep unauthenticated requests bounded before they can trigger a paid model call.
+const MAX_TEXT_LENGTH = 20_000
+const MAX_IMAGE_BASE64_LENGTH = 8_000_000
+const SUPPORTED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"])
+
 // --- LAPIS 2: KAMUS DARURAT (NORMALIZATION MAP) ---
 // Jika Gemini masih membandel memberikan kategori bahasa Inggris saat mode 'id', ini akan menimpanya.
 const categoryTranslationMap: Record<string, string> = {
@@ -140,7 +145,35 @@ ${JSON_STRUCTURE}
 export async function POST(req: Request) {
   try {
     const body = await req.json()
-    const language: string = body.language ?? "id"
+    if (!body || typeof body !== "object") {
+      return NextResponse.json({ success: false, error: "Invalid request body." }, { status: 400 })
+    }
+
+    const language: string = body.language === "en" ? "en" : "id"
+    const hasImage = typeof body.image === "string" && body.image.length > 0
+    const hasText = typeof body.text === "string" && body.text.trim().length > 0
+
+    if (hasImage) {
+      const mimeType = typeof body.mimeType === "string" ? body.mimeType : "image/jpeg"
+      if (!SUPPORTED_IMAGE_TYPES.has(mimeType) || body.image.length > MAX_IMAGE_BASE64_LENGTH) {
+        return NextResponse.json(
+          { success: false, error: "Image type or size is not supported." },
+          { status: 413 },
+        )
+      }
+    } else if (hasText) {
+      if (body.text.length > MAX_TEXT_LENGTH) {
+        return NextResponse.json(
+          { success: false, error: `Conversation text must be ${MAX_TEXT_LENGTH.toLocaleString()} characters or fewer.` },
+          { status: 413 },
+        )
+      }
+    } else {
+      return NextResponse.json(
+        { success: false, error: "Provide conversation text or a supported image." },
+        { status: 400 },
+      )
+    }
 
     let result
 
